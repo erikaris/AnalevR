@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Shop Item - Start Bootstrap Template</title>
+
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
+    <style>
+        html {
+            font-family: Lato, 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        h5 {
+            font-size: 1.28571429em;
+            font-weight: 700;
+            line-height: 1.2857em;
+            margin: 0;
+        }
+
+        .card {
+            font-size: 1em;
+            overflow: hidden;
+            padding: 0;
+            border: none;
+            border-radius: .28571429rem;
+            box-shadow: 0 1px 3px 0 #d4d4d5, 0 0 0 1px #d4d4d5;
+            cursor: pointer;
+        }
+
+        .card-block {
+            font-size: 1em;
+            position: relative;
+            margin: 0;
+            padding: 1em;
+            border: none;
+            border-top: 1px solid rgba(34, 36, 38, .1);
+            box-shadow: none;
+        }
+
+        .card-img-top {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .card-title {
+            font-size: 1.28571429em;
+            font-weight: 700;
+            line-height: 1.2857em;
+            text-align: center;
+        }
+
+        .card-text {
+            clear: both;
+            margin-top: .5em;
+            color: rgba(0, 0, 0, .68);
+        }
+
+        .card-footer {
+            font-size: 1em;
+            position: static;
+            top: 0;
+            left: 0;
+            max-width: 100%;
+            padding: .75em 1em;
+            color: rgba(0, 0, 0, .4);
+            border-top: 1px solid rgba(0, 0, 0, .05) !important;
+            background: #fff;
+        }
+
+        .card-inverse .btn {
+            border: 1px solid rgba(0, 0, 0, .05);
+        }
+
+        .profile {
+            position: absolute;
+            top: -12px;
+            display: inline-block;
+            overflow: hidden;
+            box-sizing: border-box;
+            width: 25px;
+            height: 25px;
+            margin: 0;
+            border: 1px solid #fff;
+            border-radius: 50%;
+        }
+
+        .profile-avatar {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 50%;
+        }
+
+        .profile-inline {
+            position: relative;
+            top: 0;
+            display: inline-block;
+        }
+
+        .profile-inline ~ .card-title {
+            display: inline-block;
+            margin-left: 4px;
+            vertical-align: top;
+        }
+
+        .text-bold {
+            font-weight: 700;
+        }
+
+        .meta {
+            font-size: 1em;
+            color: rgba(0, 0, 0, .4);
+        }
+
+        .meta a {
+            text-decoration: none;
+            color: rgba(0, 0, 0, .4);
+        }
+
+        .meta a:hover {
+            color: rgba(0, 0, 0, .87);
+        }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+        <div class="row">
+            {% for session in sessions %}
+                <div class="col-sm-6 col-md-4 col-lg-3 mt-4">
+                    <div class="card" session-id="{{ session.id }}">
+                        <div style="width: 100%; padding-top: 100%; position: relative;">
+                            <div style="position: absolute; top: 0px; bottom: 0px; left: 0px; right: 0px; padding: 20%;">
+                                <span style="display: block; text-align: center;">
+                                    {% if session.id %}
+                                        <i class="fa fa-check" style="font-size: 1000%;"></i>
+                                    {% else %}
+                                        <i class="fa fa-plus" style="font-size: 1000%;"></i>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-block">
+                            {% if session.id %}
+                                <h4 class="card-title">Workspace Name</h4>
+                            {% else %}
+                                <h4 class="card-title">New Workspace</h4>
+                            {% endif %}
+
+
+                            <!--<div class="meta">-->
+                                <!--<a href="#">Friends</a>-->
+                            <!--</div>-->
+                            <!--<div class="card-text">-->
+                                <!--Tawshif is a web designer living in Bangladesh.-->
+                            <!--</div>-->
+                        </div>
+                        <!--<div class="card-footer">-->
+                            <!--<span class="float-right">Joined in 2013</span>-->
+                            <!--<span><i class=""></i>75 Friends</span>-->
+                        <!--</div>-->
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        jQuery(function($) {
+            $('.card').on('click', function() {
+                session_id = $(this).attr('session-id');
+
+                if (session_id == null || session_id == '') {
+                    $.post('{{ base_url }}/api/session/create/', {
+                        'user_id': '{{ user_id }}'
+                    }, function(resp) {
+                        console.log(resp);
+                        session_id = resp.data;
+                        window.open('{{ base_url }}/session/' + session_id, '_blank');
+                    });
+                } else {
+                    window.open('{{ base_url }}/session/' + session_id, '_blank');
+                }
+            });
+        });
+    </script>
+  </body>
+</html>
