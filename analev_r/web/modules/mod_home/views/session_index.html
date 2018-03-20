@@ -52,6 +52,11 @@
         .cell_toolbar .btn:hover .fa-play {
             color: #008000;
         }
+        .CodeMirror-scroll {
+            height: auto;
+            overflow-y: hidden;
+            overflow-x: auto;
+        }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
@@ -120,13 +125,6 @@
                 '</div></div></div>');
 
             return {
-                /**
-                 * Opens our dialog
-                 * @param message Custom message
-                 * @param options Custom options:
-                 * 				  options.dialogSize - bootstrap postfix for dialog size, e.g. "sm", "m";
-                 * 				  options.progressType - bootstrap postfix for progress bar type, e.g. "success", "warning".
-                 */
                 show: function (message, options) {
                     // Assigning defaults
                     if (typeof options === 'undefined') {
@@ -148,6 +146,7 @@
                         $dialog.find('.progress-bar').addClass('progress-bar-' + settings.progressType);
                     }
                     $dialog.find('h3').text(message);
+
                     // Adding callbacks
                     if (typeof settings.onHide === 'function') {
                         $dialog.off('hidden.bs.modal').on('hidden.bs.modal', function (e) {
@@ -159,9 +158,6 @@
 
                     return $dialog;
                 },
-                /**
-                 * Closes dialog
-                 */
                 hide: function () {
                     $dialog.modal('hide');
 
@@ -201,32 +197,38 @@
             <div id="notebook_panel">
                 <div id="notebook" tabindex="-1">
                     <div class="container" id="notebook-container">
-                        <div class="cell code_cell unrendered selected" tabindex="2">
-                            <div class="input">
-                                <div class="prompt input_prompt">
-                                    <bdi>In</bdi>&nbsp;[&nbsp;]:
-                                </div>
-                                <div class="inner_cell">
-                                    <div class="cell_toolbar">
-                                        <a class="btn run"><i class="fa fa-play"></i></a>
-                                        <a class="btn copy"><i class="fa fa-copy"></i></a>
-                                        <a class="btn paste"><i class="fa fa-paste"></i></a>
+                        <div class="row">
+                            <div class="cell code_cell unrendered selected" tabindex="2">
+                                <div class="input">
+                                    <div class="prompt input_prompt">
+                                        <bdi>In</bdi>&nbsp;[&nbsp;]:
                                     </div>
-                                    <textarea class="input_area"></textarea>
+                                    <div class="inner_cell">
+                                        <div class="cell_toolbar">
+                                            <a class="btn run"><i class="fa fa-play"></i></a>
+                                            <a class="btn copy"><i class="fa fa-copy"></i></a>
+                                            <a class="btn paste"><i class="fa fa-paste"></i></a>
+                                        </div>
+                                        <textarea class="input_area"></textarea>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="output_wrapper">
-                                <div class="out_prompt_overlay prompt" title="click to expand output; double click to hide output"></div>
-                                <div class="output"></div>
-                                <div class="btn btn-default output_collapsed" title="click to expand output" style="display: none;">. . .
+
+                            <div class="cell">
+                                <div class="input out">
+                                    <div class="out_prompt prompt">
+                                        <bdi>Out</bdi> [ ]:
+                                    </div>
+                                    <div class="inner_cell">
+                                        <textarea class="output_area" style="display: none;"></textarea>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="cell">
-                            <i class="fa fa-plus"></i>
+                            <div class="cell">
+                                <i class="fa fa-plus"></i>
+                            </div>
                         </div>
-
                     </div>
                     <div class="end_space"></div>
                 </div>
@@ -249,7 +251,7 @@
                 $dialog = $('<div class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">' +
                     '<div class="modal-dialog modal-m">' +
                     '<div class="modal-content">' +
-                        '<div class="modal-header"><h3 style="margin:0;">Staring workspace...</h3></div>' +
+                        '<div class="modal-header"><h3 style="margin:0;">Starting workspace...</h3></div>' +
                         '<div class="modal-body">' +
                             '<div class="progress progress-striped active" style="margin-bottom:0;"><div class="progress-bar" style="width: 100%"></div></div>' +
                         '</div>' +
@@ -265,11 +267,25 @@
             });
 
             $(document).on('click', '.input .run', function() {
+                var $btn_run = $(this);
+
                 $.post('{{ base_url }}/api/session/eval/{{ session_id }}', {
                     'user_id': '{{ user_id }}',
                     'cmd': $input.getValue()
                 }, function(resp) {
-                    if (resp.success) $dialog.modal('hide');
+                    $btn_run.parents().each(function() {
+                        $par = $(this);
+                        if ($par.hasClass('row')) {
+                            $out = $par.find('.out .inner_cell');
+                            $out.find('.CodeMirror').remove();
+                            $out.find('.output_area').val(resp.data).codemirror({
+                                'mode': 'r',
+                                'lineNumbers': true,
+                                'indentUnit': 2,
+                                'readOnly': true
+                            });
+                        }
+                    });
                 });
             });
 
