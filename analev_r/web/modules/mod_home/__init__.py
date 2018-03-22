@@ -39,7 +39,9 @@ class Home(Blueprint):
             if not user:
                 return redirect(common.options['BASE_URL'] + '/login/', code=302)
 
-            return render_template('session_index.html', session_id=id, user_id=user.id)
+            sess = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user.id).first()
+
+            return render_template('session_index_2.html', session=sess, session_id=id, user_id=user.id)
 
         @self.route('/login/', methods=['GET'])
         @self.route('/login', methods=['GET'])

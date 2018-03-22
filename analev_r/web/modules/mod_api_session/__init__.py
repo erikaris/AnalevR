@@ -112,6 +112,26 @@ class APISession(Blueprint):
             success, msg = start_session(id)
             return Response(success=success, message=msg, status=200, mimetype='application/json')
 
+        @self.route('/title/', methods=['POST'])
+        @self.route('/title', methods=['POST'])
+        def api_session_title():
+            id = request.form.get('pk', '')
+            label = request.form.get('value', '')
+
+            session = SessionModel.query.filter(SessionModel.id == id).first()
+            session.label = label
+            common.db.session.commit()
+
+            return Response(success=True, message='Session label is updated', status=200, mimetype='application/json')
+
+        @self.route('/fake/', methods=['POST'])
+        @self.route('/fake', methods=['POST'])
+        def api_session_fake():
+            id = request.form.get('pk', '')
+            label = request.form.get('value', '')
+
+            return Response(success=True, message='Session label is updated', status=200, mimetype='application/json')
+
         @self.route('/eval/<id>/', methods=['POST'])
         @self.route('/eval/<id>', methods=['POST'])
         def api_session_eval(id):
