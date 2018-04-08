@@ -65,6 +65,8 @@ class FlaskApp(Flask):
                 mod = mod_cls()
                 self.register_blueprint(mod)
 
+        common.db.create_all()
+
     def configure_session(self):
         self.permanent_session_lifetime = datetime.timedelta(minutes=40)
         Session(self)
