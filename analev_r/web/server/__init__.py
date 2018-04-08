@@ -4,7 +4,6 @@ import sys
 from optparse import OptionParser
 
 import datetime
-import grpc
 from flask import Flask, Blueprint, render_template, session
 from flask_session import Session
 
@@ -132,7 +131,7 @@ def main():
     options['BASE_DIR'] = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
     options['TEMPLATE_DIR'] = os.path.join(options['BASE_DIR'], 'templates')
     if not options['WORKSPACE_DIR']:
-        options['WORKSPACE_DIR'] = os.path.abspath(os.path.join(options['BASE_DIR'], os.pardir, os.pardir, 'workspaces'))
+        options['WORKSPACE_DIR'] = os.path.abspath(os.path.join(options['BASE_DIR'], os.pardir, os.pardir, 'r_workspace'))
     if not options['SCRIPT_DIR']:
         options['SCRIPT_DIR'] = os.path.abspath(os.path.join(options['BASE_DIR'], os.pardir, os.pardir, 'r_scripts'))
     options['SQLALCHEMY_TRACK_MODIFICATIONS'] = False

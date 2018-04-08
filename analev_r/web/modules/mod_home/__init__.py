@@ -5,7 +5,6 @@ from flask import Blueprint, render_template, request, session
 from werkzeug.utils import redirect
 
 from analev_r import common
-from analev_r.models import generate_uuid
 from analev_r.models.user import SessionModel, UserModel
 
 
@@ -41,7 +40,7 @@ class Home(Blueprint):
 
             sess = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user.id).first()
 
-            return render_template('session_index_2.html', session=sess, session_id=id, user_id=user.id)
+            return render_template('session_index.html', session=sess, session_id=id, user_id=user.id)
 
         @self.route('/login/', methods=['GET'])
         @self.route('/login', methods=['GET'])

@@ -1,4 +1,3 @@
-from memoize import Memoizer
 from analev_r.models import SQLEngine
 
 
@@ -41,8 +40,6 @@ def connect_db(db_uri):
     global db
 
     db = SQLEngine(db_uri)
-
-    from analev_r.models.user import UserModel, SessionModel
 
     db.create_all()
 

@@ -1,10 +1,9 @@
 import hashlib
 import json
-from datetime import datetime
 
 from flask import Blueprint, request
 
-from analev_r import common, get_type
+from analev_r import common
 from analev_r.models import alchemyencoder
 from analev_r.models.user import UserModel
 from analev_r.web import Response

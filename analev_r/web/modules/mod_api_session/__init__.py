@@ -1,11 +1,8 @@
 import json
-from datetime import datetime
-
+import os
 import subprocess
 
-import requests
 import zmq
-import os
 from flask import Blueprint, request
 
 from analev_r import common, get_type
@@ -167,6 +164,29 @@ class APISession(Blueprint):
                 return Response(success=False if resp['error'][0] == 1 else True,
                                 message=resp['message'][0], status=200,
                                 mimetype='application/json')
+            except Exception as e:
+                return Response(success=False, message=str(e), status=200,
+                                mimetype='application/json')
+
+        @self.route('/save/<id>/', methods=['POST'])
+        @self.route('/save/<id>', methods=['POST'])
+        def api_session_save(id):
+            try:
+                user_id = request.form.get('user_id', '')
+                content = request.form.get('content', '')
+
+                session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
+                if session:
+                    r_nb = os.path.join(common.options['WORKSPACE_DIR'], session.id, 'notebook.json')
+                    with open(r_nb, 'wb') as f:
+                        f.write(content.encode('utf-8'))
+                        f.flush()
+
+                    return Response(success=True, message='Notebook saved', status=200,
+                                    mimetype='application/json')
+                else:
+                    return Response(success=False, message='Your session is expired. Please re-login', status=200,
+                                    mimetype='application/json')
             except Exception as e:
                 return Response(success=False, message=str(e), status=200,
                                 mimetype='application/json')
