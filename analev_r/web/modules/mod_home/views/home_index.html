@@ -186,7 +186,6 @@
                     $.post('{{ base_url }}/api/session/create/', {
                         'user_id': '{{ user_id }}'
                     }, function(resp) {
-                        console.log(resp);
                         session_id = resp.data;
                         window.open('{{ base_url }}/session/' + session_id, '_blank');
                     });

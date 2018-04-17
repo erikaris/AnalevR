@@ -40,7 +40,8 @@ class Home(Blueprint):
 
             sess = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user.id).first()
 
-            return render_template('session_index.html', session=sess, session_id=id, user_id=user.id)
+            return render_template('session_index.html', session=sess, session_id=id, user_id=user.id,
+                                   base_url=common.options['BASE_URL'])
 
         @self.route('/login/', methods=['GET'])
         @self.route('/login', methods=['GET'])
