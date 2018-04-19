@@ -134,6 +134,9 @@
             cursor: move;
             cursor: -webkit-grabbing;
         }
+        .output-wrapper [class*="output-"] {
+            display: none;
+        }
         .CodeMirror {
             height: auto !important;
             font-size: 12px !important;
@@ -301,7 +304,7 @@
                             </div>
 
                             <div class="box-body">
-                                <div class="row input">
+                                <div class="row input-wrapper">
                                     <div class="col-md-12">
                                         <textarea style="display:none;" class="paragraph-input"></textarea>
                                     </div>
@@ -309,17 +312,19 @@
                             </div>
 
                             <div class="box-footer">
-                                <div class="row output">
-                                    <div class="col-sm-12 col-xs-12">
+                                <div class="row output-wrapper">
+                                    <div class="col-sm-12 col-xs-12 output-table"></div>
+                                    <div class="col-sm-12 col-xs-12 output-image"></div>
+                                    <div class="col-sm-12 col-xs-12 output-plain">
                                         <textarea style="display:none;" class="paragraph-output"></textarea>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="box-footer">
-                                <div class="row">
+                                <div class="row time-wrapper">
                                     <div class="col-sm-12 col-xs-12">
-                                        asdf
+                                        Command is executed in <span class="sp-et"></span> ms.
                                     </div>
                                 </div>
                             </div>
@@ -356,7 +361,7 @@
     <script src="https://adminlte.io/themes/AdminLTE/dist/js/demo.js"></script>
 
     <script type="text/javascript">
-        $('.input textarea').codemirror({
+        $('.input-wrapper textarea').codemirror({
             'mode': 'r',
             'lineNumbers': true,
             'indentUnit': 2,
@@ -457,25 +462,46 @@
             $btn_run.parents().each(function() {
                 $par = $(this);
                 if ($par.hasClass('box')) {
-                    $input = $par.find('.input textarea').data('codemirror');
+                    $input = $par.find('.input-wrapper textarea').data('codemirror');
+                    $par.find('.output-wrapper [class*="output-"]').empty().hide();
 
                     $.post('{{ base_url }}/api/session/eval/{{ session_id }}', {
                         'user_id': '{{ user_id }}',
                         'cmd': $input.getValue()
                     }, function(resp) {
-                        $btn_run.parents().each(function() {
-                            $par = $(this);
-                            if ($par.hasClass('box')) {
-                                $out = $par.find('.output');
-                                $out.find('.CodeMirror').remove();
-                                $out.find('textarea').val(resp.data).codemirror({
-                                    'mode': 'r',
-                                    'lineNumbers': true,
-                                    'indentUnit': 2,
-                                    'readOnly': true
-                                });
+                        if (resp.success) {
+                            var type = resp.data.type,
+                                text = resp.data.text,
+                                time = resp.data.time.elapsed;
+
+                            $par = $btn_run.parents().filter(function() {
+                                if ($(this).hasClass('box')) return true;
+                                return false;
+                            });
+
+                            $par.find('.time-wrapper .sp-et').html(time);
+
+                            if (type == 'table') {
+                                $par.find('.output-wrapper .output-table')
+                                    .html(text)
+                                    .show();
                             }
-                        });
+
+
+                            /* $btn_run.parents().each(function() {
+                                $par = $(this);
+                                if ($par.hasClass('box')) {
+                                    $out = $par.find('.output-wrapper');
+                                    $out.find('.CodeMirror').remove();
+                                    $out.find('textarea').val(resp.data).codemirror({
+                                        'mode': 'r',
+                                        'lineNumbers': true,
+                                        'indentUnit': 2,
+                                        'readOnly': true
+                                    });
+                                }
+                            }); */
+                        }
                     });
                 }
             });
@@ -488,8 +514,8 @@
                     $cpar = $par.clone();
                     $cpar.insertAfter($par);
                     $cpar.find('.CodeMirror').remove();
-                    $cpar.find('.input textarea')
-                        .val($par.find('.input textarea').data('codemirror').getValue())
+                    $cpar.find('.input-wrapper textarea')
+                        .val($par.find('.input-wrapper textarea').data('codemirror').getValue())
                         .codemirror({
                             'mode': 'r',
                             'lineNumbers': true,

@@ -38,6 +38,9 @@ if (file.exists(session.filename)) {
     cat('[', session.port, ']', 'Session', session.filename, 'is restored\n')
 }
 
+# Load core module
+source(paste(script.dir(), '/r-processor.R', sep=''))
+
 # Load all available modules (*.R)
 file.sources = list.files(c(paste(script.dir(), '/modules', sep='')), pattern="*.R$", full.names=TRUE, ignore.case=TRUE)
 print(paste(script.dir(), '/modules', sep=''))
@@ -103,7 +106,9 @@ while(1) {
         resp <<- e
     })
 
-    r <- list('message'=toString(resp), 'error'=err_code)
+    r <- list('data'=process.response(resp), 'error'=err_code)
+
+    print(toJSON(r))
 
     send.raw.string(session.socket.out, toJSON(r))
 

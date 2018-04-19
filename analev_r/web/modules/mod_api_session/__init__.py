@@ -161,9 +161,17 @@ class APISession(Blueprint):
                         print('Session is started')
 
                 resp = json.loads(resp)
-                return Response(success=False if resp['error'][0] == 1 else True,
-                                message=resp['message'][0], status=200,
-                                mimetype='application/json')
+
+                success = False if resp['error'][0] == 1 else True
+                type = resp['data']['type'][0]
+                text = resp['data']['text'][0]
+                time = resp['data']['time'][0]
+                ut, st, et, _, _ = time.split(', ')
+                time = {'user': ut, 'system': st, 'elapsed': et}
+
+                return Response(success=success, data={
+                    'text': text, 'type': type, 'time': time
+                }, message='', status=200, mimetype='application/json')
             except Exception as e:
                 return Response(success=False, message=str(e), status=200,
                                 mimetype='application/json')
