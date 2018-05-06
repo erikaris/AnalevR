@@ -1,0 +1,18 @@
+version: '2'
+
+services:
+  mysql-server:
+    image: mysql:5.7
+    environment:
+      - MYSQL_ROOT_PASSWORD=toor
+      - MYSQL_DATABASE=analev_r
+
+  analev-r:
+    build: .
+    depends_on:
+      - mysql-server
+    links:
+      - mysql-server:mysql-server
+    ports:
+      - "8080:8080"
+    command: "python3 /opt/analev-r/bin/analev-r-server -D mysql+pymysql://root:toor@mysql-server/analev_r"
