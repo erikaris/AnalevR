@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Text
+from sqlalchemy import Column, String, Integer, Text, Boolean
 
 from analev_r import common
 from ..models import Serializable, generate_uuid
@@ -6,8 +6,11 @@ from ..models import Serializable, generate_uuid
 
 class UserModel(common.db.Model, Serializable):
     id = Column(String(36), default=generate_uuid)
-    username = Column(String(255), primary_key=True, nullable=False)
+    firstname = Column(String(255), nullable=False)
+    lastname = Column(String(255), nullable=False)
+    email = Column(String(255), primary_key=True, nullable=False)
     password = Column(String(255), nullable=False)
+    is_activated = Column(Boolean, nullable=False, default=False)
 
 class SessionModel(common.db.Model, Serializable):
     id = Column(String(36), primary_key=True, default=generate_uuid)

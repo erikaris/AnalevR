@@ -6,6 +6,21 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=toor
       - MYSQL_DATABASE=analev_r
+    ports:
+      - "3316:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:4.7
+    hostname: phpmyadmin
+    environment:
+      - PMA_USER=root
+      - PMA_PASSWORD=toor
+    depends_on:
+        - mysql-server
+    links:
+      - mysql-server:db
+    ports:
+      - "8881:80"
 
   analev-r:
     build: .
@@ -14,5 +29,5 @@ services:
     links:
       - mysql-server:mysql-server
     ports:
-      - "8080:8080"
+      - "8880:8080"
     command: "python3 /opt/analev-r/bin/analev-r-server -D mysql+pymysql://root:toor@mysql-server/analev_r"

@@ -9,7 +9,7 @@ process.response <- function(resp) {
 
     # dtype <- typeof(resp)
     dtype <- 'plain'
-    dresp <- ''
+    dresp <- toString(resp)
     dstart <- proc.time()
 
     if (is.data.frame(resp)) {

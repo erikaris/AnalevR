@@ -169,6 +169,9 @@ class APISession(Blueprint):
                 ut, st, et, _, _ = time.split(', ')
                 time = {'user': ut, 'system': st, 'elapsed': et}
 
+                if not success:
+                    text = text.replace('Error in eval(expr, envir, enclos):', '').strip()
+
                 return Response(success=success, data={
                     'text': text, 'type': type, 'time': time
                 }, message='', status=200, mimetype='application/json')

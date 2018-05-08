@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>AnalevR - An R Analysis Environment</title>
+    <link rel="shortcut icon" href="/static/images/analev-r.ico" />
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
@@ -124,6 +125,9 @@
     </script>
 
     <style>
+        .user-panel>.image>img {
+            background: #fff;
+        }
         .content-header > .breadcrumb {
             padding: 0 10px 0 0;
         }
@@ -170,35 +174,20 @@
                         <!-- User Account: style can be found in dropdown.less -->
                         <li class="dropdown user user-menu">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                <img src="https://adminlte.io/themes/AdminLTE/dist/img/user2-160x160.jpg" class="user-image"
+                                <img src="https://image.flaticon.com/icons/png/512/78/78373.png" class="user-image"
                                      alt="User Image">
-                                <span class="hidden-xs">Alexander Pierce</span>
+                                <span class="hidden-xs">{{ user.firstname }} {{ user.lastname }}</span>
                             </a>
                             <ul class="dropdown-menu">
                                 <!-- User image -->
                                 <li class="user-header">
-                                    <img src="https://adminlte.io/themes/AdminLTE/dist/img/user2-160x160.jpg"
+                                    <img src="https://image.flaticon.com/icons/png/512/78/78373.png"
                                          class="img-circle" alt="User Image">
 
                                     <p>
-                                        Alexander Pierce - Web Developer
+                                        {{ user.firstname }} {{ user.lastname }}
                                         <small>Member since Nov. 2012</small>
                                     </p>
-                                </li>
-                                <!-- Menu Body -->
-                                <li class="user-body">
-                                    <div class="row">
-                                        <div class="col-xs-4 text-center">
-                                            <a href="#">Followers</a>
-                                        </div>
-                                        <div class="col-xs-4 text-center">
-                                            <a href="#">Sales</a>
-                                        </div>
-                                        <div class="col-xs-4 text-center">
-                                            <a href="#">Friends</a>
-                                        </div>
-                                    </div>
-                                    <!-- /.row -->
                                 </li>
                                 <!-- Menu Footer-->
                                 <li class="user-footer">
@@ -206,7 +195,7 @@
                                         <a href="#" class="btn btn-default btn-flat">Profile</a>
                                     </div>
                                     <div class="pull-right">
-                                        <a href="#" class="btn btn-default btn-flat">Sign out</a>
+                                        <a href="/logout" class="btn btn-default btn-flat">Sign out</a>
                                     </div>
                                 </li>
                             </ul>
@@ -223,11 +212,11 @@
                 <!-- Sidebar user panel -->
                 <div class="user-panel">
                     <div class="pull-left image">
-                        <img src="https://adminlte.io/themes/AdminLTE/dist/img/user2-160x160.jpg" class="img-circle"
+                        <img src="https://image.flaticon.com/icons/png/512/78/78373.png" class="img-circle"
                              alt="User Image">
                     </div>
                     <div class="pull-left info">
-                        <p>Alexander Pierce</p>
+                        <p>{{ user.firstname }} {{ user.lastname }}</p>
                         <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
                     </div>
                 </div>
@@ -361,6 +350,10 @@
     <script src="https://adminlte.io/themes/AdminLTE/dist/js/demo.js"></script>
 
     <script type="text/javascript">
+        setTimeout(function() {
+            $('[href="https://themequarry.com"]').parent().remove();
+        }, 1000);
+
         $('.input-wrapper textarea').codemirror({
             'mode': 'r',
             'lineNumbers': true,
@@ -401,7 +394,7 @@
             $dialog.modal();
 
             $.post('{{ base_url }}/api/session/start/{{ session_id }}', {
-                'user_id': '{{ user_id }}'
+                'user_id': '{{ user.id }}'
             }, function(resp) {
                 if (resp.success) $dialog.modal('hide');
             });
@@ -420,10 +413,10 @@
 
         $(document).on('click', '.list-workspaces .create a', function() {
             $.post('{{ base_url }}/api/session/create/', {
-                'user_id': '{{ user_id }}'
+                'user_id': '{{ user.id }}'
             }, function(resp) {
                 session_id = resp.data;
-                window.open('{{ base_url }}/session/' + session_id);
+                location.href = '{{ base_url }}/session/' + session_id;
             });
         });
 
@@ -442,7 +435,7 @@
             });
 
             $.post('{{ base_url }}/api/session/save/{{ session_id }}', {
-                'user_id': '{{ user_id }}',
+                'user_id': '{{ user.id }}',
                 'content': JSON.stringify(paragraphs)
             }, function(resp) {
 
@@ -451,7 +444,7 @@
 
         $(document).on('click', '.btn[data-widget=trash]', function() {
             $.post('{{ base_url }}/api/session/delete/{{ session_id }}', {
-                'user_id': '{{ user_id }}'
+                'user_id': '{{ user.id }}'
             }, function(resp) {
 
             });
@@ -463,10 +456,10 @@
                 $par = $(this);
                 if ($par.hasClass('box')) {
                     $input = $par.find('.input-wrapper textarea').data('codemirror');
-                    $par.find('.output-wrapper [class*="output-"]').empty().hide();
+                    $par.find('.output-wrapper [class*="output-"]').hide();
 
                     $.post('{{ base_url }}/api/session/eval/{{ session_id }}', {
-                        'user_id': '{{ user_id }}',
+                        'user_id': '{{ user.id }}',
                         'cmd': $input.getValue()
                     }, function(resp) {
                         if (resp.success) {
@@ -481,26 +474,31 @@
 
                             $par.find('.time-wrapper .sp-et').html(time);
 
-                            if (type == 'table') {
+                            if (type == 'plain') {
+                                $par = $par.find('.output-wrapper .output-plain')
+                                    .show();
+                                $par.find('.CodeMirror').remove();
+                                $par.find('textarea').val(text).codemirror({
+                                    'mode': 'r',
+                                    'lineNumbers': true,
+                                    'indentUnit': 2,
+                                    'readOnly': true
+                                });
+                            } else if(type == 'table') {
                                 $par.find('.output-wrapper .output-table')
                                     .html(text)
                                     .show();
                             }
-
-
-                            /* $btn_run.parents().each(function() {
-                                $par = $(this);
-                                if ($par.hasClass('box')) {
-                                    $out = $par.find('.output-wrapper');
-                                    $out.find('.CodeMirror').remove();
-                                    $out.find('textarea').val(resp.data).codemirror({
-                                        'mode': 'r',
-                                        'lineNumbers': true,
-                                        'indentUnit': 2,
-                                        'readOnly': true
-                                    });
-                                }
-                            }); */
+                        } else {
+                            $par = $par.find('.output-wrapper .output-plain')
+                                .show();
+                            $par.find('.CodeMirror').remove();
+                            $par.find('textarea').val(resp.data.text).codemirror({
+                                'mode': 'r',
+                                'lineNumbers': true,
+                                'indentUnit': 2,
+                                'readOnly': true
+                            });
                         }
                     });
                 }
