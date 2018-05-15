@@ -6,26 +6,28 @@
     <link rel="shortcut icon" href="/static/images/analev-r.ico" />
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 
-    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
 
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <style>
+        html, body, .container, .row {
+            height: 100%;
+        }
+    </style>
+
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   </head>
-
-  <style>
-      html, body, .container, .row {
-          height: 100%;
-      }
-  </style>
-
   <body>
     <div class="container">
         <div class="row">
             <div class="col-md-2 col-lg-3"></div>
             <div class="col-xs-12 col-sm-12 col-md-8 col-lg-6">
                 <div style="margin-top: 50px;">
-                    <div>Please wait while creating initial workspace...</div>
+                    <div>Please wait while redirecting to workspace...</div>
                     <div class="progress">
                         <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
                     </div>
@@ -34,21 +36,32 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script>
         jQuery(function($) {
-            $.post('{{ base_url }}/api/session/create/', {
-                'user_id': '{{ user.id }}'
-            }, function(resp) {
-                session_id = resp.data;
-
-                $.post('{{ base_url }}/api/session/start/' + session_id, {
+            {% if sessions|length > 1 %}
+                $.post('./api/session/start/{{ sessions[0].id }}', {
                     'user_id': '{{ user.id }}'
                 }, function(resp) {
                     if (resp.success) {
-                        location.href = '{{ base_url }}/session/' + session_id;
+                        location.href = './session/{{ sessions[0].id }}';
                     }
                 });
-            });
+            {% else %}
+                $.post('./api/session/create/', {
+                    'user_id': '{{ user.id }}'
+                }, function(resp) {
+                    session_id = resp.data;
+
+                    $.post('./api/session/start/' + session_id, {
+                        'user_id': '{{ user.id }}'
+                    }, function(resp) {
+                        if (resp.success) {
+                            location.href = './session/' + session_id;
+                        }
+                    });
+                });
+            {% endif %}
         });
     </script>
   </body>

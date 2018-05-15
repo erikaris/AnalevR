@@ -7,10 +7,7 @@
     <link rel="shortcut icon" href="/static/images/analev-r.ico" />
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
 
-    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
-
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
     <style>
         body {
             padding-top: 90px;
@@ -112,6 +109,13 @@
             border-color: #1CA347;
         }
     </style>
+
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -139,7 +143,7 @@
 					<div class="panel-body">
 						<div class="row">
 							<div class="col-lg-12">
-								<form id="login-form" action="{{ base_url }}/login" method="post" role="form" style="display: block;">
+								<form id="login-form" action="." method="post" role="form" style="display: block;">
 									<div class="form-group">
 										<input type="text" name="email" tabindex="1" class="form-control" placeholder="Email" value="">
 									</div>
@@ -201,6 +205,7 @@
 		</div>
 	</div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script>
         $(function() {
             $('#login-form-link').click(function(e) {
