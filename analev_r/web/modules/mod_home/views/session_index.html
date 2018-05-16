@@ -214,10 +214,14 @@
             opacity: 0.6;
             transition: opacity ease 0.5s;
         }
-        .login-modal-container .login-error {
+        .login-modal-container .login-error,
+        .login-modal-container .registration-error {
             display: none;
         }
-        .login-help{
+        .login-modal-container .registration-form {
+            display: none;
+        }
+        .login-help {
             font-size: 12px;
         }
 
@@ -266,17 +270,33 @@
                 <div style="text-align: center">
                     <img src="/static/images/analev-r.png" style="width:80px" />
                 </div>
-                <h1>Login to Your Account</h1><br>
-                <div class="alert alert-danger login-error"></div>
-                <form method="post" action="#">
+
+                <form class="login-form" method="post" action="#">
+                    <h1>Login to Your Account</h1><br>
+                    <div class="alert alert-danger login-error"></div>
                     <input type="text" name="email" placeholder="Email">
                     <input type="password" name="password" placeholder="Password">
-                    <input type="submit" name="login" class="login login-modal-submit" value="Login">
+                    <input type="submit" class="login login-modal-submit" value="Login">
+
+                    <div class="login-help">
+                        <a class="ln-registration" href="#">Register</a> - <a href="#">Forgot Password</a>
+                    </div>
                 </form>
 
-                <div class="login-help">
-                    <a href="#">Register</a> - <a href="#">Forgot Password</a>
-                </div>
+                <form class="registration-form" method="post" action="#">
+                    <h1>Register New Account</h1><br>
+                    <div class="alert alert-danger registration-error"></div>
+                    <input type="text" name="firstname" placeholder="Firstname">
+                    <input type="text" name="lastname" placeholder="Lastname">
+                    <input type="text" name="email" placeholder="Email">
+                    <input type="password" name="password" placeholder="Password">
+                    <input type="password" name="confirm-password" placeholder="Confirm Password">
+                    <input type="submit" class="login login-modal-submit" value="Register">
+
+                    <div class="login-help">
+                        <a class="ln-login" href="#">Login</a> - <a href="#">Forgot Password</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -485,11 +505,34 @@
         {% if user is none %}
             $loading_text.html('You are not authenticated!');
 
-            $('#login_modal').find('form').attr('action', context_url + '/login');
+            $('#login_modal').find('.registration-form').attr('action', context_url + '/register');
+            $('#login_modal').find('.login-form').attr('action', context_url + '/login');
             $('#login_modal').modal();
 
-            {% if error is not none %}
-                $('#login_modal').find('.login-error').html('{{ error }}').show();
+            $('.ln-registration').on('click', function() {
+                $('.registration-form').fadeIn();
+                $('.login-form').hide();
+            });
+
+            $('.ln-login').on('click', function() {
+                $('.registration-form').hide();
+                $('.login-form').fadeIn();
+            });
+
+            {% if page == 'registration' %}
+                $('.registration-form').fadeIn();
+                $('.login-form').hide();
+
+                {% if error is not none %}
+                    $('#login_modal').find('.registration-error').html('{{ error }}').show();
+                    $('#login_modal').find('.registration-form [name=firstname]').val('{{ registration_data.firstname }}');
+                    $('#login_modal').find('.registration-form [name=lastname]').val('{{ registration_data.lastname }}');
+                    $('#login_modal').find('.registration-form [name=email]').val('{{ registration_data.email }}');
+                {% endif %}
+            {% else %}
+                {% if error is not none %}
+                    $('#login_modal').find('.login-error').html('{{ error }}').show();
+                {% endif %}
             {% endif %}
         {% else %}
             $loading_text.html('Preparing workspace...');

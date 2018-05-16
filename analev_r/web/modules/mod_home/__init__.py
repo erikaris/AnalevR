@@ -16,87 +16,6 @@ class Home(Blueprint):
                            static_folder=os.path.join(os.path.dirname(__file__), 'static'),
                            static_url_path='/static/home')
 
-        # @self.route('/', methods=['GET'])
-        # def home_index():
-        #     user = session.get('user')
-        #     if not user:
-        #         return render_template('login_index.html', base_url=request.base_url, session=session)
-        #
-        #     sessions = SessionModel.query.filter(SessionModel.user_id == user.id).all()
-        #     return render_template('home_index.html', sessions=sessions, base_url=request.base_url, user=user)
-
-            # if len(sessions) > 0:
-            #     return redirect(common.options['BASE_URL'] + '/session/' + sessions[0].id, code=302)
-            # else:
-            #     return render_template('home_index.html', sessions=sessions, base_url=common.options['BASE_URL'], user=user)
-
-        @self.route('/login', methods=['POST'])
-        def home_login_post():
-            email = request.form.get('email', '')
-            password = request.form.get('password', '')
-            hashed_password = hashlib.md5(str(password).encode()).hexdigest()
-
-            session['error'] = None
-            user = UserModel.query.filter(UserModel.email == email, UserModel.password == hashed_password).first()
-
-            if not user:
-                session['error'] = 'Username and Password is not match'
-            else:
-                if not user.is_activated:
-                    session['error'] = 'Your account is not activated yet. Please follow the link sent to your email.'
-                else:
-                    session['user'] = user
-
-            return render_template('post_login.html', user=user, request_path=request.path)
-
-            # if session['error']:
-            #     return render_template('login_index.html', base_url=request.base_url, session=session)
-            #
-            # session['user'] = user
-            # return redirect(common.options['BASE_URL'] + '/', code=302)
-
-        @self.route('/', defaults={'id': None}, methods=['GET'])
-        @self.route('/session/<id>/', methods=['GET'])
-        @self.route('/session/<id>', methods=['GET'])
-        def home_session(id):
-            user = session.get('user')
-            if user and id:
-                sess = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user.id).first()
-            else:
-                sess = None
-
-            if not request.referrer:
-                session['error'] = None
-
-            if 'error' not in session:
-                session['error'] = None
-
-            return render_template('session_index.html', session=sess, user=user, error=session['error'] or None, request_path=request.path)
-
-
-            # user = session.get('user')
-            # if not user:
-            #     return redirect(common.options['BASE_URL'] + '/login/', code=302)
-            #
-            # sess = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user.id).first()
-            #
-            # return render_template('session_index.html', session=sess, session_id=id, user=user,
-            #                        base_url=common.options['BASE_URL'])
-
-        # @self.route('/login/', methods=['GET'])
-        # @self.route('/login', methods=['GET'])
-        # def home_login():
-        #     return render_template('login_index.html', base_url=common.options['BASE_URL'],
-        #                            session=session)
-
-
-
-        @self.route('/logout/', methods=['GET'])
-        @self.route('/logout', methods=['GET'])
-        def home_logout():
-            session['user'] = None
-            return redirect(common.options['BASE_URL'] + '/', code=302)
-
         @self.route('/register/', methods=['POST'])
         @self.route('/register', methods=['POST'])
         def home_register_post():
@@ -117,11 +36,13 @@ class Home(Blueprint):
                     session['error'] = 'Email is already registered'
 
             if session['error']:
+                session['page'] = 'registration'
                 session['firstname'] = firstname
                 session['lastname'] = lastname
                 session['email'] = email
-                return redirect(common.options['BASE_URL'] + '/login')
+                return render_template('post_register.html', request_path=request.path)
 
+            session['page'] = None
             session['firstname'] = None
             session['lastname'] = None
             session['email'] = None
@@ -136,11 +57,11 @@ class Home(Blueprint):
             common.db.session.commit()
 
             msg = '''\
-                From: Analev-R <user.analev.r@gmail.com>
-                Subject: Activation Link
-                
-                Thank you for registering AnalevR. Please activate your account by follow this link
-                http://localhost:8080/activate/id/{}'''.format(user.id)
+                        From: Analev-R <user.analev.r@gmail.com>
+                        Subject: Activation Link
+
+                        Thank you for registering AnalevR. Please activate your account by follow this link
+                        http://localhost:8080/activate/id/{}'''.format(user.id)
 
             server = smtplib.SMTP("smtp.gmail.com", 587)
             server.ehlo()
@@ -149,6 +70,52 @@ class Home(Blueprint):
             server.sendmail('user.analev.r@gmail.com', email, msg)
             server.close()
 
+            return redirect(common.options['BASE_URL'] + '/', code=302)
+
+        @self.route('/login', methods=['POST'])
+        def home_login_post():
+            email = request.form.get('email', '')
+            password = request.form.get('password', '')
+            hashed_password = hashlib.md5(str(password).encode()).hexdigest()
+
+            session['error'] = None
+            user = UserModel.query.filter(UserModel.email == email, UserModel.password == hashed_password).first()
+
+            if not user:
+                session['error'] = 'Username and Password is not match'
+            else:
+                if not user.is_activated:
+                    session['error'] = 'Your account is not activated yet. Please follow the link sent to your email.'
+                else:
+                    session['user'] = user
+
+            return render_template('post_login.html', user=user, request_path=request.path)
+
+        @self.route('/', defaults={'id': None}, methods=['GET'])
+        @self.route('/session/<id>/', methods=['GET'])
+        @self.route('/session/<id>', methods=['GET'])
+        def home_session(id):
+            user = session.get('user')
+            if user and id:
+                sess = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user.id).first()
+            else:
+                sess = None
+
+            if not request.referrer:
+                session['error'] = None
+                session['page'] = None
+
+            if 'error' not in session:
+                session['error'] = None
+
+            return render_template('session_index.html', session=sess, user=user, error=session['error'] or None,
+                                   page=session['page'] or None, registration_data={'firstname': session['firstname'] or '',
+                                   'lastname' : session['lastname'] or '', 'email' : session['email'] or ''}, request_path=request.path)
+
+        @self.route('/logout/', methods=['GET'])
+        @self.route('/logout', methods=['GET'])
+        def home_logout():
+            session['user'] = None
             return redirect(common.options['BASE_URL'] + '/', code=302)
 
         @self.route('/activate/id/<id>/', methods=['GET'])
