@@ -109,8 +109,8 @@ class Home(Blueprint):
                 session['error'] = None
 
             return render_template('session_index.html', session=sess, user=user, error=session['error'] or None,
-                                   page=session['page'] or None, registration_data={'firstname': session['firstname'] or '',
-                                   'lastname' : session['lastname'] or '', 'email' : session['email'] or ''}, request_path=request.path)
+                                   page=session['page'] or None, registration_data={'firstname': session['firstname'] if 'firstname' in session else '',
+                                   'lastname' : session['lastname'] if 'lastname' in session else '', 'email' : session['email'] if 'email' in session else ''}, request_path=request.path)
 
         @self.route('/logout/', methods=['GET'])
         @self.route('/logout', methods=['GET'])
