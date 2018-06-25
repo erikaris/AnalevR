@@ -639,20 +639,22 @@
                                         '</a>' +
                                     '</li>').appendTo($('.list-workspaces'));
                                 });
+
+                                if (resp.data.length < 10) {
+                                    $new_ws = $('<li class="create">' +
+                                        '<a href="#"><i class="fa fa-plus"></i>New Workspace</a>' +
+                                    '</li>').appendTo($('.list-workspaces'));
+
+                                    $new_ws.find('a').on('click', function() {
+                                        $.post(context_url + '/api/session/create/', {
+                                            'user_id': '{{ user.id }}'
+                                        }, function(resp) {
+                                            session_id = resp.data;
+                                            location.href = context_url + '/session/' + session_id;
+                                        });
+                                    });
+                                }
                             }
-
-                            $new_ws = $('<li class="create">' +
-                                '<a href="#"><i class="fa fa-circle-o"></i>New Workspace</a>' +
-                            '</li>').appendTo($('.list-workspaces'));
-
-                            $new_ws.find('a').on('click', function() {
-                                $.post(context_url + '/api/session/create/', {
-                                    'user_id': '{{ user.id }}'
-                                }, function(resp) {
-                                    session_id = resp.data;
-                                    location.href = context_url + '/session/' + session_id;
-                                });
-                            });
                         });
 
                         $(document).on('click', '.btn[data-widget=save]', function() {
