@@ -111,9 +111,9 @@ http://localhost:8080/activate/id/{}'''.format(user.id)
                                    error=session['error'] if 'error' in session else None,
                                    page=session['page'] or None,
                                    registration_data={
-                                        'firstname': session['firstname'] if 'firstname' in session else '',
-                                        'lastname' : session['lastname'] if 'lastname' in session else '',
-                                        'email' : session['email'] if 'email' in session else ''
+                                       'firstname': session['firstname'] if 'firstname' in session else '',
+                                       'lastname': session['lastname'] if 'lastname' in session else '',
+                                       'email': session['email'] if 'email' in session else ''
                                    }, request_path=request.path)
 
         @self.route('/logout/', methods=['GET'])
