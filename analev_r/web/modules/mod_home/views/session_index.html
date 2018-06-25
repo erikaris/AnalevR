@@ -24,6 +24,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script type="text/javascript">
+        function htmlDecode(input) {
+            var doc = new DOMParser().parseFromString(input, "text/html");
+            return doc.documentElement.textContent;
+        }
+
         (function ($) {
             $.fn.codemirror = function (options) {
                 var result = this;
@@ -225,6 +230,12 @@
             font-size: 12px;
         }
 
+        /* Resend activation email */
+        .ln-resend-activation-email {
+            color: #eee !important;
+            text-decoration: underline !important;
+        }
+
 
 
         .user-panel>.image>img {
@@ -296,6 +307,23 @@
                     <div class="login-help">
                         <a class="ln-login" href="#">Login</a> - <a href="#">Forgot Password</a>
                     </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="resend_activation_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog">
+            <div class="login-modal-container">
+                <div style="text-align: center">
+                    <img src="/static/images/analev-r.png" style="width:80px" />
+                </div>
+
+                <form class="activation-form" method="post" action="#">
+                    <h1>Resend Activation Email</h1><br>
+                    <div class="alert alert-danger login-error"></div>
+                    <input type="text" name="email" placeholder="Email">
+                    <input type="submit" class="login login-modal-submit" value="Resend">
                 </form>
             </div>
         </div>
@@ -531,7 +559,13 @@
                 {% endif %}
             {% else %}
                 {% if error is not none %}
-                    $('#login_modal').find('.login-error').html('{{ error }}').show();
+                    $('#login_modal').find('.login-error').show().html(htmlDecode('{{ error }}'));
+                    $('.ln-resend-activation-email').on('click', function(e) {
+                        e.preventDefault();
+                        $('#resend_activation_modal').find('.activation-form').attr('action', context_url + '/resend-activation');
+                        $('#resend_activation_modal').modal();
+                        return false;
+                    });
                 {% endif %}
             {% endif %}
         {% else %}
@@ -687,6 +721,10 @@
                                             } else if(type == 'table') {
                                                 $par.find('.output-wrapper .output-table')
                                                     .html(text)
+                                                    .show();
+                                            } else if(type == 'image') {
+                                                $par.find('.output-wrapper .output-image')
+                                                    .html('<img src="data:image/png;base64,' + text + '" >')
                                                     .show();
                                             }
                                         } else {

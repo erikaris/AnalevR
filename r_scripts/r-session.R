@@ -49,6 +49,7 @@ sapply(file.sources,source,.GlobalEnv)
 # STARTING SERVER ....
 library(rzmq)
 library(jsonlite)
+require(base64enc)
 
 session.context.out = init.context()
 session.socket.out = init.socket(session.context.out, "ZMQ_REP")
@@ -85,6 +86,8 @@ while(1) {
 
     tryCatch({
         if (!is.null(cmd)) {
+            eval(parse(text='png(file="tmp.png")'));
+
             if (grepl('<-', cmd)) {
                 cat('[', session.port, ']', 'Executing command', cmd, '\n');
 
@@ -94,6 +97,8 @@ while(1) {
                 cat('[', session.port, ']', 'Evaluating command', cmd, '\n');
                 resp <<- eval(parse(text=cmd));
             }
+
+            eval(parse(text='dev.off()'));
         }
 
         else if (!is.null(func)) {

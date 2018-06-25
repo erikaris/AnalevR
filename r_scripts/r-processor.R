@@ -17,6 +17,16 @@ process.response <- function(resp) {
         dresp <- process.dataframe(resp)
     }
 
+    else if(file.exists("tmp.png")) {
+        b64i <- base64enc::base64encode(readBin("tmp.png", "raw", file.info("tmp.png")[1, "size"]), "txt")
+        unlink("tmp.png")
+        dtype <- 'image'
+        dresp <- b64i
+    }
+
+    # eval(parse(text='if(file.exists("tmp.png")) { b64i <- base64enc::base64encode(readBin("tmp.png", "raw", file.info("tmp.png")[1, "size"]), "txt"); unlink("tmp.png"); }'));
+    # resp <<- eval(parse(text="b64i"));
+
     dend <- proc.time()
     dresp <- list('type'=dtype, 'text'=dresp, 'time'=toString(dend-dstart))
 

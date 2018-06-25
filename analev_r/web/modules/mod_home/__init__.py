@@ -57,15 +57,14 @@ class Home(Blueprint):
             common.db.session.commit()
 
             msg = '''\
-                        From: Analev-R <user.analev.r@gmail.com>
-                        Subject: Activation Link
+From: Analev-R <user.analev.r@gmail.com>
+Subject: Activation Link
 
-                        Thank you for registering AnalevR. Please activate your account by follow this link
-                        http://localhost:8080/activate/id/{}'''.format(user.id)
+Thank you for registering AnalevR. Please activate your account by follow this link
+http://localhost:8080/activate/id/{}'''.format(user.id)
 
-            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
             server.ehlo()
-            server.starttls()
             server.login('user.analev.r', 'python.r')
             server.sendmail('user.analev.r@gmail.com', email, msg)
             server.close()
@@ -85,7 +84,7 @@ class Home(Blueprint):
                 session['error'] = 'Username and Password is not match'
             else:
                 if not user.is_activated:
-                    session['error'] = 'Your account is not activated yet. Please follow the link sent to your email.'
+                    session['error'] = 'Your account is not activated yet. Please follow the link sent to your email or <a href="#" class="ln-resend-activation-email">resend activation email</a>.'
                 else:
                     session['user'] = user
 
@@ -108,9 +107,14 @@ class Home(Blueprint):
             if 'error' not in session:
                 session['error'] = None
 
-            return render_template('session_index.html', session=sess, user=user, error=session['error'] or None,
-                                   page=session['page'] or None, registration_data={'firstname': session['firstname'] or '',
-                                   'lastname' : session['lastname'] or '', 'email' : session['email'] or ''}, request_path=request.path)
+            return render_template('session_index.html', session=sess, user=user,
+                                   error=session['error'] if 'error' in session else None,
+                                   page=session['page'] or None,
+                                   registration_data={
+                                        'firstname': session['firstname'] if 'firstname' in session else '',
+                                        'lastname' : session['lastname'] if 'lastname' in session else '',
+                                        'email' : session['email'] if 'email' in session else ''
+                                   }, request_path=request.path)
 
         @self.route('/logout/', methods=['GET'])
         @self.route('/logout', methods=['GET'])
@@ -134,5 +138,28 @@ class Home(Blueprint):
             if session['error']:
                 return session['error']
             else:
-                session['info'] = 'Your account is activated. Please login to continue'
-                return redirect(common.options['BASE_URL'] + '/login', code=302)
+                session['error'] = 'Your account is activated. Please login to continue'
+                return redirect(common.options['BASE_URL'] + '/', code=302)
+
+        @self.route('/resend-activation', methods=['POST'])
+        def home_resend_activation_post():
+            email = request.form.get('email', '')
+
+            session['error'] = None
+            user = UserModel.query.filter(UserModel.email == email).first()
+
+            msg = '''\
+From: Analev-R <user.analev.r@gmail.com>
+Subject: Activation Link
+
+Thank you for registering AnalevR. Please activate your account by follow this link
+http://localhost:8080/activate/id/{}'''.format(user.id)
+
+            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+            server.ehlo()
+            server.login('user.analev.r', 'python.r')
+            server.sendmail('user.analev.r@gmail.com', email, msg)
+            server.close()
+
+            session['error'] = 'Activation email has been sent. Please follow the link attached in the email to activate.'
+            return redirect(common.options['BASE_URL'] + '/', code=302)
