@@ -202,18 +202,18 @@ class APISession(Blueprint):
                 return Response(success=False, message=str(e), status=200,
                                 mimetype='application/json')
 
-        @self.route('/delete/<id>/', methods=['GET'])
-        @self.route('/delete/<id>', methods=['GET'])
+        @self.route('/delete/<id>/', methods=['POST'])
+        @self.route('/delete/<id>', methods=['POST'])
         def api_session_delete(id):
             try:
-                session = SessionModel.query.filter(SessionModel.id == id)
+                user_id = request.form.get('user_id', '')
+                session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
 
-                if session.first():
-                    session.delete()
+                if session:
+                    common.db.session.delete(session)
                     common.db.session.commit()
-                    common.memoizer.delete(str('position-{}-{}'.format(session.id, get_type())))
 
-                    return Response(message='Session having id = "{}" is deleted'.format(id),
+                    return Response(success=True, message='Session having id = "{}" is deleted'.format(id),
                                     status=200, mimetype='application/json')
                 else:
                     return Response(success=False, message='Session having id = "{}" is not found'.format(id),

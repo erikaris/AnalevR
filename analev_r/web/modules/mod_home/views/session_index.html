@@ -683,7 +683,9 @@
                             $.post(context_url + '/api/session/delete/{{ session.id }}', {
                                 'user_id': '{{ user.id }}'
                             }, function(resp) {
-
+                                if (resp.success) {
+                                    location.href = context_url;
+                                }
                             });
                         });
 
