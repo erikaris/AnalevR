@@ -693,7 +693,7 @@
                                 $input = $(this).find('.paragraph-input');
                                 $output_table = $(this).find('.output-table');
                                 $output_image = $(this).find('.output-image');
-                                $output_plain = $(this).find('.output-plain .paragraph-output');
+                                $output_plain = $(this).find('.output-plain .paragraph-output').data('codemirror');
 
                                 paragraphs.push({
                                     'title' : $title.html(),
@@ -701,14 +701,14 @@
                                     'output' : {
                                         'table': $output_table.html(),
                                         'image': $output_image.html(),
-                                        'plain': $output_plain.data('codemirror').getValue()
+                                        'plain': $output_plain ? $output_plain.getValue() : ''
                                     },
                                 });
                             });
 
                             $.post(context_url + '/api/session/save/{{ session.id }}', {
                                 'user_id': '{{ user.id }}',
-                                'content': JSON.stringify(paragraphs)
+                                'content': JSON.stringify(paragraphs, null, 4)
                             }, function(resp) {
 
                             });
@@ -748,6 +748,10 @@
 
                                             $par.find('.time-wrapper .sp-et').html(time);
 
+                                            $par.find('.output-wrapper .output-table, .output-wrapper .output-image').html('');
+                                            $par.find('.output-wrapper .output-plain').find('.CodeMirror').remove();
+                                            $par.find('.output-wrapper .output-plain textarea').val('');
+
                                             if (type == 'plain') {
                                                 $par = $par.find('.output-wrapper .output-plain')
                                                     .show();
@@ -760,8 +764,10 @@
                                                 });
                                             } else if(type == 'table') {
                                                 $par.find('.output-wrapper .output-table')
-                                                    .html(text)
+                                                    .html('<div class="table-responsive">' + text + '</div>')
                                                     .show();
+
+                                                $par.find('.output-wrapper .output-table table').addClass('table');
                                             } else if(type == 'image') {
                                                 $par.find('.output-wrapper .output-image')
                                                     .html('<img src="data:image/png;base64,' + text + '" >')
