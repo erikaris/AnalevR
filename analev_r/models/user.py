@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Integer, Text, Boolean
+from datetime import datetime
+from sqlalchemy import Column, String, Integer, Text, Boolean, DateTime
 
 from analev_r import common
 from ..models import Serializable, generate_uuid
@@ -18,3 +19,4 @@ class SessionModel(common.db.Model, Serializable):
     port = Column(Integer(), nullable=True)
     label = Column(String(255), nullable=True)
     description = Column(Text(), nullable=True)
+    created_date = Column(DateTime(), nullable=False, default=datetime.utcnow)

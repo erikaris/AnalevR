@@ -21,7 +21,7 @@ class APISession(Blueprint):
         @self.route('/list/', methods=['GET'])
         @self.route('/list', methods=['GET'])
         def api_session_list():
-            sessions = SessionModel.query.filter().all()
+            sessions = SessionModel.query.filter().order_by(SessionModel.created_date).all()
             return Response(message=json.loads(json.dumps([r.as_dict() for r in sessions], default=alchemyencoder)),
                             status=200, mimetype='application/json')
 
