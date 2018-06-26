@@ -107,7 +107,15 @@ class APISession(Blueprint):
         @self.route('/start/<id>', methods=['POST'])
         def api_session_start(id):
             success, msg = start_session(id)
-            return Response(success=success, message=msg, status=200, mimetype='application/json')
+
+            data = '[]'
+            if success:
+                r_nb = os.path.join(common.options['WORKSPACE_DIR'], id, 'notebook.json')
+                if os.path.exists(r_nb):
+                    with open(r_nb, 'r') as f:
+                        data = f.read()
+
+            return Response(success=success, message=msg, data=data, status=200, mimetype='application/json')
 
         @self.route('/title/', methods=['POST'])
         @self.route('/title', methods=['POST'])

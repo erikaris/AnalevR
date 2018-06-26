@@ -602,6 +602,35 @@
                     if (resp.success) {
                         $loading_text.html('Initializing workspace...');
 
+                        // Restoring workspace data
+                        paragraphs = JSON.parse(resp.data);
+
+                        $par = $('.paragraph');
+                        for(p=0; p<paragraphs.length-1; p++) {
+                            $par.clone().insertAfter($par);
+                        }
+
+                        $pars = $('.paragraph');
+                        paragraphs.forEach(function(data, p) {
+                            $title = $($pars[p]).find('.paragraph-title').html(data.title);
+                            $input = $($pars[p]).find('.paragraph-input').val(data.input);
+                            $output_table = $($pars[p]).find('.output-table').html(data.output.table);
+                            $output_image = $($pars[p]).find('.output-image').html(data.output.image);
+                            $output_plain = $($pars[p]).find('.output-plain .paragraph-output').val(data.output.plain);
+
+                            if(data.output.table != "") $output_table.show();
+                            if(data.output.image != "") $output_image.show();
+                            if(data.output.plain != "") {
+                                $output_plain.show().parent().show();
+                                $output_plain.codemirror({
+                                    'mode': 'r',
+                                    'lineNumbers': true,
+                                    'indentUnit': 2,
+                                    'readOnly': true
+                                });
+                            }
+                        });
+
                         $('.input-wrapper textarea').codemirror({
                             'mode': 'r',
                             'lineNumbers': true,
@@ -662,12 +691,18 @@
                             $('.paragraph').each(function() {
                                 $title = $(this).find('.paragraph-title');
                                 $input = $(this).find('.paragraph-input');
-                                $output = $(this).find('.paragraph-output');
+                                $output_table = $(this).find('.output-table');
+                                $output_image = $(this).find('.output-image');
+                                $output_plain = $(this).find('.output-plain .paragraph-output');
 
                                 paragraphs.push({
                                     'title' : $title.html(),
                                     'input' : $input.data('codemirror').getValue(),
-                                    'output' : $output.data('codemirror').getValue(),
+                                    'output' : {
+                                        'table': $output_table.html(),
+                                        'image': $output_image.html(),
+                                        'plain': $output_plain.data('codemirror').getValue()
+                                    },
                                 });
                             });
 
