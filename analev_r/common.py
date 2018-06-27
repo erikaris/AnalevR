@@ -18,7 +18,8 @@ def is_active_port(port):
         return False
     except socket.error as e:
         if e.errno == 98:
-            print("Port is already in use")
+            # print("Port is already in use")
+            pass
 
         return True
 
@@ -34,7 +35,8 @@ def random_port():
             return port
         except socket.error as e:
             if e.errno == 98:
-                print("Port is already in use")
+                # print("Port is already in use")
+                pass
 
 def connect_db(db_uri):
     global db

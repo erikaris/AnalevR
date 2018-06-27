@@ -49,6 +49,9 @@ sapply(file.sources,source,.GlobalEnv)
 # STARTING SERVER ....
 library(rzmq)
 library(jsonlite)
+library(XML)
+library(plyr)
+# library(rjson)
 require(base64enc)
 
 session.context.out = init.context()

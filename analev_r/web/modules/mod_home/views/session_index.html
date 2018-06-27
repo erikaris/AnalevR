@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.3/css/skins/_all-skins.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.0/addon/scroll/simplescrollbars.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/css/bootstrap-editable.css"/>
 
     <!--[if lt IE 9]>
@@ -258,6 +259,9 @@
             height: auto !important;
             font-size: 12px !important;
         }
+        /*.output-wrapper .CodeMirror {
+            max-height: 300px !important;
+        }*/
         .CodeMirror-scroll {
             height: auto !important;
             overflow-y: hidden !important;
@@ -518,6 +522,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.6.0/Sortable.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.0/addon/scroll/simplescrollbars.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/mode/r/r.min.js"></script>
 
@@ -626,7 +631,8 @@
                                     'mode': 'r',
                                     'lineNumbers': true,
                                     'indentUnit': 2,
-                                    'readOnly': true
+                                    'readOnly': true,
+                                    'scrollbarStyle': 'overlay'
                                 });
                             }
                         });
@@ -637,6 +643,7 @@
                             'indentUnit': 2,
                             'tabSize': 2,
                             'indentWithTabs': true,
+                            'scrollbarStyle': 'overlay'
                         });
 
                         $.fn.editable.defaults.mode = 'inline';
@@ -736,15 +743,15 @@
                                         'user_id': '{{ user.id }}',
                                         'cmd': $input.getValue()
                                     }, function(resp) {
+                                        $par = $btn_run.parents().filter(function() {
+                                            if ($(this).hasClass('box')) return true;
+                                            return false;
+                                        });
+
                                         if (resp.success) {
                                             var type = resp.data.type,
                                                 text = resp.data.text,
                                                 time = resp.data.time.elapsed;
-
-                                            $par = $btn_run.parents().filter(function() {
-                                                if ($(this).hasClass('box')) return true;
-                                                return false;
-                                            });
 
                                             $par.find('.time-wrapper .sp-et').html(time);
 
@@ -760,7 +767,8 @@
                                                     'mode': 'r',
                                                     'lineNumbers': true,
                                                     'indentUnit': 2,
-                                                    'readOnly': true
+                                                    'readOnly': true,
+                                                    'scrollbarStyle': 'overlay'
                                                 });
                                             } else if(type == 'table') {
                                                 $par.find('.output-wrapper .output-table')
@@ -781,9 +789,12 @@
                                                 'mode': 'r',
                                                 'lineNumbers': true,
                                                 'indentUnit': 2,
-                                                'readOnly': true
+                                                'readOnly': true,
+                                                'scrollbarStyle': 'overlay'
                                             });
                                         }
+
+                                        $(document).find('.btn[data-widget=save]').click();
                                     });
                                 }
                             });
@@ -804,6 +815,7 @@
                                             'indentUnit': 2,
                                             'tabSize': 2,
                                             'indentWithTabs': true,
+                                            'scrollbarStyle': 'overlay'
                                         });
                                 }
                             });
