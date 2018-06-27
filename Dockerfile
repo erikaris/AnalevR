@@ -12,7 +12,8 @@ ADD requirements.txt /opt/analev-r
 RUN pip3 install -r /opt/analev-r/requirements.txt --no-cache-dir
 
 # Install required R packages
-RUN Rscript -e 'install.packages(c("rzmq", "jsonlite", "xlsx", "XML", "plyr", "foreign", "ggplot2"), repos="http://cran.r-project.org")'
+RUN apt-get update -y && apt-get install -y libxml2-dev && rm -r /var/lib/apt
+RUN Rscript -e 'install.packages(c("rzmq", "jsonlite", "xtable", "base64enc", "xlsx", "XML", "plyr", "foreign", "ggplot2"), repos="http://cran.r-project.org")'
 
 # Add project to /opt
 ADD . /opt/analev-r
