@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+from threading import Thread
 
 import zmq
 from flask import Blueprint, request
@@ -137,6 +138,10 @@ class APISession(Blueprint):
 
             return Response(success=True, message='Session label is updated', status=200, mimetype='application/json')
 
+        def session_eval(id):
+            with common.get_lock(id):
+                pass
+
         @self.route('/eval/<id>/', methods=['POST'])
         @self.route('/eval/<id>', methods=['POST'])
         def api_session_eval(id):
@@ -145,6 +150,7 @@ class APISession(Blueprint):
                 cmd = request.form.get('cmd', '')
                 session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
 
+                common.get_semaphore(id).acquire()
                 # Setup receiver
                 cb_port = common.random_port()
                 cb_ctx = zmq.Context()
@@ -153,8 +159,6 @@ class APISession(Blueprint):
 
                 # Send message
                 while True:
-                    session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
-
                     ctx = zmq.Context()
                     sock = ctx.socket(zmq.REQ)
                     sock.connect("tcp://localhost:{}".format(session.port))
@@ -178,6 +182,7 @@ class APISession(Blueprint):
                 # Wait for reply
                 resp = cb_sock.recv_string()
                 cb_ctx.destroy()
+                common.get_semaphore(id).release()
 
                 resp = json.loads(resp)
 

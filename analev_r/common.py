@@ -8,6 +8,24 @@ attachments = None
 options = {}
 session_port = 5100
 heartbeat_port = 5600
+locks = {}
+semaphores = {}
+
+def get_lock(id):
+    import threading
+
+    if id not in locks:
+        locks[id] = threading.Lock
+
+    return locks[id]
+
+def get_semaphore(id):
+    from threading import BoundedSemaphore
+
+    if id not in semaphores:
+        semaphores[id] = BoundedSemaphore()
+
+    return semaphores[id]
 
 def is_active_port(port):
     import socket

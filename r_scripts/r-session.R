@@ -74,12 +74,13 @@ while(1) {
     cat('[', session.port, ']', 'Reading message...', '\n');
 
     data = receive.string(session.socket.out)
-    send.raw.string(session.socket.out, 'OK')
 
     if (data == 'ping') {
         send.raw.string(session.socket.out, 'pong')
         next
     }
+
+    send.raw.string(session.socket.out, 'OK')
 
     data = fromJSON(data)
     cmd <- data$cmd;
