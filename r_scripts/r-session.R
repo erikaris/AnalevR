@@ -51,6 +51,8 @@ library(rzmq)
 library(jsonlite)
 library(XML)
 library(plyr)
+library(foreign)
+library(ggplot2)
 # library(rjson)
 require(base64enc)
 
@@ -93,6 +95,10 @@ while(1) {
     tryCatch({
         if (!is.null(cmd)) {
             eval(parse(text='png(file="tmp.png")'));
+
+            if (grepl('ggplot', cmd, fixed=TRUE)) {
+                cmd = paste(cmd, '\n', 'ggsave("tmp.png")', sep='');
+            }
 
             if (grepl('<-', cmd)) {
                 cat('[', session.port, ']', 'Executing command', cmd, '\n');
