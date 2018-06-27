@@ -26,7 +26,7 @@ def is_active_port(port):
 def random_port():
     import socket
 
-    for port in range(5100, 5600):
+    for port in range(5100, 10000):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         try:

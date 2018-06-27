@@ -143,7 +143,15 @@ class APISession(Blueprint):
             try:
                 user_id = request.form.get('user_id', '')
                 cmd = request.form.get('cmd', '')
+                session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
 
+                # Setup receiver
+                cb_port = common.random_port()
+                cb_ctx = zmq.Context()
+                cb_sock = cb_ctx.socket(zmq.REP)
+                cb_sock.bind("tcp://*:{}".format(cb_port))
+
+                # Send message
                 while True:
                     session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
 
@@ -154,12 +162,11 @@ class APISession(Blueprint):
                     poller = zmq.Poller()
                     poller.register(sock, zmq.POLLIN)
 
-                    sock.send_json({'cmd': cmd})
+                    sock.send_json({'cmd': cmd, 'callback': "tcp://localhost:{}".format(cb_port)})
 
                     socks = dict(poller.poll(1000))
                     if socks:
                         if socks.get(sock) == zmq.POLLIN:
-                            resp = sock.recv_string()
                             ctx.destroy()
                             break
 
@@ -167,6 +174,10 @@ class APISession(Blueprint):
                     success, msg = start_session(id)
                     if success:
                         print('Session is started')
+
+                # Wait for reply
+                resp = cb_sock.recv_string()
+                cb_ctx.destroy()
 
                 resp = json.loads(resp)
 

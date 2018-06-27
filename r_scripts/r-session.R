@@ -74,6 +74,7 @@ while(1) {
     cat('[', session.port, ']', 'Reading message...', '\n');
 
     data = receive.string(session.socket.out)
+    send.raw.string(session.socket.out, 'OK')
 
     if (data == 'ping') {
         send.raw.string(session.socket.out, 'pong')
@@ -84,6 +85,7 @@ while(1) {
     cmd <- data$cmd;
     func <- data$func;
     args <- data$args;
+    callback.url <- data$callback;
     err_code <- 0
     resp <- 'Failed';
 
@@ -116,9 +118,14 @@ while(1) {
 
     r <- list('data'=process.response(resp), 'error'=err_code)
 
-    print(toJSON(r))
-
-    send.raw.string(session.socket.out, toJSON(r))
+    # Send response to broker
+    # send.raw.string(session.socket.out, toJSON(r))
+    session.context.heartbeat = init.context()
+    session.socket.heartbeat = init.socket(session.context.heartbeat,"ZMQ_REQ")
+    if (connect.socket(session.socket.heartbeat, callback.url)) {
+        cat('[', session.port, ']', 'Reply to broker', '\n');
+        send.raw.string(session.socket.heartbeat, data=toJSON(r))
+    }
 
     # Save session for next purpose
     save.image(file=session.filename)
