@@ -270,6 +270,28 @@
         .output-wrapper img {
             max-width: 100%;
         }
+
+        /* Data selector */
+        .ls-data {
+            list-style: none;
+            padding-left: 0px;
+        }
+        .ls-data li {
+            display: inline-block;
+            padding: 2px 5px;
+            background-color: #2a739e;
+            border-radius: 3px;
+        }
+        .ls-data .add {
+            cursor: pointer;
+        }
+        .ls-data .data {
+            margin-right: 5px;
+        }
+        .ls-data .data .remove {
+            margin-left: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="hold-transition skin-blue sidebar-mini">
@@ -332,6 +354,22 @@
                     <input type="text" name="email" placeholder="Email">
                     <input type="submit" class="login login-modal-submit" value="Resend">
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="select_data_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog">
+            <div class="login-modal-container">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="/static/images/analev-r.png" style="width:80px" />
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tbl_select_data_list">
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -448,6 +486,15 @@
                     <button type="button" class="btn btn-box-tool" data-widget="trash">
                         <i class="fa fa-trash"></i>
                     </button>
+                </div>
+            </section>
+
+            <section class="content-header">
+                <div class="alert alert-info">
+                    <div><strong>Info</strong> Select data using <i class="fa fa-plus"></i></div>
+                    <ul class="ls-data">
+                        <li class="add"><i class="fa fa-plus"></i></li>
+                    </ul>
                 </div>
             </section>
 
@@ -611,7 +658,16 @@
                         $loading_text.html('Initializing workspace...');
 
                         // Restoring workspace data
-                        paragraphs = JSON.parse(resp.data);
+                        var saved = JSON.parse(resp.data),
+                            data = saved.data,
+                            paragraphs = saved.paragraphs;
+
+                        data.forEach(function(d) {
+                            $('<li class="data" var-index="' + d.variable_idx + '">' +
+                                'df' + d.variable_idx + ' = ' + d.label +
+                                '<span class="remove"><i class="fa fa-close"></i></span>' +
+                            '</li>').data(d).insertBefore($('.ls-data .add'));
+                        });
 
                         $par = $('.paragraph');
                         for(p=0; p<paragraphs.length-1; p++) {
@@ -696,7 +752,77 @@
                             }
                         });
 
+                        $(document).on('click', '.ls-data .add', function() {
+                            $('#select_data_modal').modal();
+                        });
+
+                        $('#select_data_modal').on('show.bs.modal', function (e) {
+                            var $modal = $(this);
+
+                            $.get(context_url + '/api/data/list', function(resp) {
+                                if (resp.success) {
+                                    $tbody = $('#tbl_select_data_list tbody').empty();
+                                    resp.data.forEach(function(d) {
+                                        $('<tr data-id="' + d.id + '" class="data-item" style="cursor: pointer;">' +
+                                            '<td>' +
+                                                '<span>' + d.label + '</span>' +
+                                            '</td>' +
+                                        '</tr>').data(d).appendTo($tbody);
+                                    });
+
+                                    $modal.find('#tbl_select_data_list .data-item').on('click', function() {
+                                        var $data = $(this),
+                                            data = $data.data(),
+                                            idx = 0;
+
+                                        for(var d=0; d<=$('.ls-data').find('.data').length+1; d++) {
+                                            $eli = $('.ls-data').find('.data[var-index=' + d + ']');
+                                            if ($eli.length == 0) {
+                                                idx = d;
+                                                break;
+                                            }
+                                        }
+
+                                        $.post(context_url + '/api/session/eval/{{ session.id }}', {
+                                            'user_id': '{{ user.id }}',
+                                            'cmd': 'df' + idx + ' <- read.spss(data.path("' + data.original_filename + '"), to.data.frame=TRUE)'
+                                        }, function (resp2) {
+                                            if (resp2.success) {
+                                                $('<li class="data" var-index="' + idx + '">' +
+                                                    'df' + idx + ' = ' + data.label +
+                                                    '<span class="remove"><i class="fa fa-close"></i></span>' +
+                                                '</li>').data(data).insertBefore($('.ls-data .add'));
+                                                $modal.modal('hide');
+                                            }
+                                        });
+                                    });
+                                }
+                            });
+                        });
+
+                        $(document).on('click', '.ls-data .data .remove', function() {
+                            $li_data = $(this).parents().filter(function() {
+                                if ($(this).hasClass('data')) return true;
+                                return false;
+                            });
+
+                            $.post(context_url + '/api/session/eval/{{ session.id }}', {
+                                'user_id': '{{ user.id }}',
+                                'cmd': 'rm(df' + $li_data.attr('var-index') + ')'
+                            }, function (resp2) {
+                                if (resp2.success) {
+                                    $li_data.remove();
+                                }
+                            });
+                        });
+
                         $(document).on('click', '.btn[data-widget=save]', function() {
+                            var data = $('.ls-data .data').toArray().map(function(d) {
+                                var _d = $(d).data();
+                                _d['variable_idx'] = $(d).attr('var-index');
+                                return _d;
+                            });
+
                             var paragraphs = [];
                             $('.paragraph').each(function() {
                                 $title = $(this).find('.paragraph-title');
@@ -716,9 +842,14 @@
                                 });
                             });
 
+                            var to_save = {
+                                'data': data,
+                                'paragraphs': paragraphs
+                            };
+
                             $.post(context_url + '/api/session/save/{{ session.id }}', {
                                 'user_id': '{{ user.id }}',
-                                'content': JSON.stringify(paragraphs, null, 4)
+                                'content': JSON.stringify(to_save, null, 4)
                             }, function(resp) {
 
                             });

@@ -1,11 +1,13 @@
 import decimal
 import inspect
+import json
 import re
 import uuid
 from datetime import datetime
 
 from sqlalchemy import create_engine, MetaData, Column, orm
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
+from sqlalchemy.orm.collections import InstrumentedList
 from sqlalchemy.orm.exc import UnmappedClassError
 
 from ._compat import iteritems
@@ -146,12 +148,35 @@ class Validation(object):
         return is_not_orphaned
 
 
+class AlchemyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        from sqlalchemy.ext.declarative import DeclarativeMeta
+
+        if isinstance(obj.__class__, DeclarativeMeta):
+            # an SQLAlchemy class
+            fields = {}
+            for field in [x for x in dir(obj) if not x.startswith('_') and x != 'metadata']:
+                data = obj.__getattribute__(field)
+                try:
+                    json.dumps(data) # this will fail on non-encodable values, like other classes
+                    fields[field] = data
+                except TypeError:
+                    fields[field] = None
+            # a json-encodable dict
+            return fields
+
+        return json.JSONEncoder.default(self, obj)
+
+
 def alchemyencoder(obj):
     """JSON encoder function for SQLAlchemy special classes."""
     if isinstance(obj, datetime):
         return obj.isoformat()
     elif isinstance(obj, decimal.Decimal):
         return float(obj)
+    # elif isinstance(obj, Model):
+    #     d = obj.as_dict()
+    #     return d
 
 
 def generate_uuid():
