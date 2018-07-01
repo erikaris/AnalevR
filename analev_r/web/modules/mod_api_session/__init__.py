@@ -26,6 +26,13 @@ class APISession(Blueprint):
             return Response(message=json.loads(json.dumps([r.as_dict() for r in sessions], default=alchemyencoder)),
                             status=200, mimetype='application/json')
 
+        @self.route('/list/user/<user_id>/', methods=['GET'])
+        @self.route('/list/user/<user_id>', methods=['GET'])
+        def api_session_user_list(user_id):
+            sessions = SessionModel.query.filter(SessionModel.user_id == user_id).order_by(SessionModel.created_date).all()
+            return Response(message=json.loads(json.dumps([r.as_dict() for r in sessions], default=alchemyencoder)),
+                            status=200, mimetype='application/json')
+
         @self.route('/create/', methods=['POST'])
         @self.route('/create', methods=['POST'])
         def api_session_add():
@@ -49,8 +56,7 @@ class APISession(Blueprint):
 
         def start_session(id):
             try:
-                user_id = request.form.get('user_id', '')
-                session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
+                session = SessionModel.query.filter(SessionModel.id == id).first()
                 port = session.port # or common.random_port()
                 if not port:
                     port = common.random_port()

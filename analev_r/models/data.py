@@ -26,4 +26,5 @@ class DataModel(common.db.Model, Serializable):
     original_filename = Column(String(255), nullable=False)
     extension = Column(String(10), nullable=False)
     label = Column(String(255), nullable=False)
-    tags = relationship('TagModel', secondary='data_tag_model', lazy='joined', backref=backref('data_model', lazy=True))
+    r_handler = Column(String(255), nullable=False)
+    # tags = relationship('TagModel', secondary='data_tag_model', lazy='joined', backref=backref('data_model', lazy=True))

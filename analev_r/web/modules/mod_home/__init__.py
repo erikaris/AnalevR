@@ -76,6 +76,7 @@ http://localhost:8080/activate/id/{}'''.format(user.id)
             email = request.form.get('email', '')
             password = request.form.get('password', '')
             hashed_password = hashlib.md5(str(password).encode()).hexdigest()
+            next_path = request.args.get('next')
 
             session['error'] = None
             user = UserModel.query.filter(UserModel.email == email, UserModel.password == hashed_password).first()
@@ -88,15 +89,21 @@ http://localhost:8080/activate/id/{}'''.format(user.id)
                 else:
                     session['user'] = user
 
-            return render_template('post_login.html', user=user, request_path=request.path)
+            return render_template('post_login.html', user=user, request_path=request.path, next_path=next_path)
 
         @self.route('/', defaults={'id': None}, methods=['GET'])
         @self.route('/session/<id>/', methods=['GET'])
         @self.route('/session/<id>', methods=['GET'])
         def home_session(id):
             user = session.get('user')
-            if user and id:
-                sess = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user.id).first()
+
+            # if user and id:
+            #     sess = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user.id).first()
+            # else:
+            #     sess = None
+
+            if id:
+                sess = SessionModel.query.filter(SessionModel.id == id).first()
             else:
                 sess = None
 
@@ -109,7 +116,7 @@ http://localhost:8080/activate/id/{}'''.format(user.id)
 
             return render_template('session_index.html', session=sess, user=user,
                                    error=session['error'] if 'error' in session else None,
-                                   page=session['page'] or None,
+                                   page=session['page'] if 'page' in session else None,
                                    registration_data={
                                        'firstname': session['firstname'] if 'firstname' in session else '',
                                        'lastname': session['lastname'] if 'lastname' in session else '',

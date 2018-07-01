@@ -292,6 +292,24 @@
             margin-left: 5px;
             cursor: pointer;
         }
+
+        .floating-button {
+            margin-bottom: 5px;
+            cursor: pointer;
+            color: #97a0b3;
+            border-radius: 3px;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+            border: 1px solid transparent;
+        }
+        .floating-button:hover {
+            color: #606c84;
+            background-color: #c0c5d2;
+            border: 1px solid #97a0b3;
+        }
+        .box {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body class="hold-transition skin-blue sidebar-mini">
@@ -354,6 +372,22 @@
                     <input type="text" name="email" placeholder="Email">
                     <input type="submit" class="login login-modal-submit" value="Resend">
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="select_workspace_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog">
+            <div class="login-modal-container">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="/static/images/analev-r.png" style="width:80px" />
+                </div>
+
+                <div class="table-responsive">
+                    <table id="tbl_select_workspace_list">
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -457,6 +491,11 @@
                 <!-- sidebar menu: : style can be found in sidebar.less -->
                 <ul class="sidebar-menu" data-widget="tree">
                     <li class="header">MAIN NAVIGATION</li>
+                    <li class="active">
+                        <a href="#" id="btn_browse_workspaces">
+                            <i class="fa fa-search"></i> <span>Browse Workspaces</span>
+                        </a>
+                    </li>
                     <li class="active treeview menu-open">
                         <a href="#">
                             <i class="fa fa-dashboard"></i> <span>Workspaces</span>
@@ -501,10 +540,13 @@
             <!-- Main content -->
             <section class="content">
                 <div class="row">
-                    <div class="col-md-12 paragraph">
+                    <div class="col-md-12 floating-button-wrapper">
+                        <div class="floating-button text-center" data-widget="add"><i class="fa fa-plus"></i></div>
+                    </div>
+                    <div class="col-md-12 cell">
                         <div class="box">
                             <div class="box-header with-border">
-                                <h3 class="box-title"><a href="#" class="paragraph-title">Untitled Paragraph</a></h3>
+                                <h3 class="box-title"><a href="#" class="cell-title">Untitled Cell</a></h3>
 
                                 <div class="box-tools pull-right">
                                     <button type="button" class="btn btn-box-tool" data-widget="run">
@@ -516,7 +558,7 @@
                                     <button type="button" class="btn btn-box-tool" data-widget="collapse">
                                         <i class="fa fa-minus"></i>
                                     </button>
-                                    <button type="button" class="btn btn-box-tool" data-widget="remove">
+                                    <button type="button" class="btn btn-box-tool" data-widget="remove2">
                                         <i class="fa fa-times"></i>
                                     </button>
                                 </div>
@@ -525,7 +567,7 @@
                             <div class="box-body">
                                 <div class="row input-wrapper">
                                     <div class="col-md-12">
-                                        <textarea style="display:none;" class="paragraph-input"></textarea>
+                                        <textarea style="display:none;" class="cell-input"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -535,7 +577,7 @@
                                     <div class="col-sm-12 col-xs-12 output-table"></div>
                                     <div class="col-sm-12 col-xs-12 output-image"></div>
                                     <div class="col-sm-12 col-xs-12 output-plain">
-                                        <textarea style="display:none;" class="paragraph-output"></textarea>
+                                        <textarea style="display:none;" class="cell-output"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -548,6 +590,9 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div class="col-md-12 floating-button-wrapper">
+                        <div class="floating-button text-center" data-widget="add"><i class="fa fa-plus"></i></div>
                     </div>
                 </div>
             </section>
@@ -590,7 +635,7 @@
             $loading_text.html('You are not authenticated!');
 
             $('#login_modal').find('.registration-form').attr('action', context_url + '/register');
-            $('#login_modal').find('.login-form').attr('action', context_url + '/login');
+            $('#login_modal').find('.login-form').attr('action', context_url + '/login?next=' + request_url);
             $('#login_modal').modal();
 
             $('.ln-registration').on('click', function() {
@@ -630,7 +675,7 @@
             {% if session is none %}
                 $loading_text.html('Requested session is not found! Redirecting to first workspace...');
 
-                $.ajax(context_url + '/api/session/list').done(function(resp) {
+                $.ajax(context_url + '/api/session/list/user/{{ user.id }}').done(function(resp) {
                     if (resp.success) {
                         if (resp.data.length > 0) {
                             location.href = context_url + '/session/' + resp.data[0].id;
@@ -651,16 +696,19 @@
             {% else %}
                 $loading_text.html('Starting session...');
 
-                $.post(context_url + '/api/session/start/{{ session.id }}', {
-                    'user_id': '{{ user.id }}'
-                }, function(resp) {
+                $.post(context_url + '/api/session/start/{{ session.id }}', function(resp) {
                     if (resp.success) {
                         $loading_text.html('Initializing workspace...');
 
                         // Restoring workspace data
-                        var saved = JSON.parse(resp.data),
+                        saved = JSON.parse(resp.data);
+                        if ('data' in saved) {
                             data = saved.data,
-                            paragraphs = saved.paragraphs;
+                            cells = saved.cells || saved.paragraphs;
+                        } else {
+                            data = [],
+                            cells = saved;
+                        }
 
                         data.forEach(function(d) {
                             $('<li class="data" var-index="' + d.variable_idx + '">' +
@@ -669,18 +717,20 @@
                             '</li>').data(d).insertBefore($('.ls-data .add'));
                         });
 
-                        $par = $('.paragraph');
-                        for(p=0; p<paragraphs.length-1; p++) {
+                        $addb = $('.floating-button-wrapper:first');
+                        $par = $('.cell');
+                        for(p=0; p<cells.length-1; p++) {
                             $par.clone().insertAfter($par);
+                            $addb.clone().insertAfter($par);
                         }
 
-                        $pars = $('.paragraph');
-                        paragraphs.forEach(function(data, p) {
-                            $title = $($pars[p]).find('.paragraph-title').html(data.title);
-                            $input = $($pars[p]).find('.paragraph-input').val(data.input);
+                        $pars = $('.cell');
+                        cells.forEach(function(data, p) {
+                            $title = $($pars[p]).find('.cell-title').html(data.title);
+                            $input = $($pars[p]).find('.cell-input').val(data.input);
                             $output_table = $($pars[p]).find('.output-table').html(data.output.table);
                             $output_image = $($pars[p]).find('.output-image').html(data.output.image);
-                            $output_plain = $($pars[p]).find('.output-plain .paragraph-output').val(data.output.plain);
+                            $output_plain = $($pars[p]).find('.output-plain .cell-output').val(data.output.plain);
 
                             if(data.output.table != "") $output_table.show();
                             if(data.output.image != "") $output_image.show();
@@ -713,18 +763,29 @@
                             title: 'Enter notebook name'
                         });
 
-                        $('.paragraph-title').editable({
+                        $('.cell-title').editable({
                             type: 'text',
                             pk: '{{ session.id }}',
                             url: context_url + '/api/session/fake',
-                            title: 'Enter paragraph name'
+                            title: 'Enter cell name'
                         });
 
                         Sortable.create($('.content .row')[0], {
                             handle: ".box-header"
                         });
 
-                        $.ajax(context_url + '/api/session/list').done(function(resp) {
+                        // Disable some controls when not owner
+                        {% if user.id != session.user_id %}
+                            $('[data-widget=save]').remove();
+                            $('[data-widget=trash]').remove();
+                            $('[data-widget=run]').remove();
+                            $('[data-widget=copy]').remove();
+                            $('[data-widget=add]').remove();
+                            $('.ls-data .data .remove').remove();
+                            $('.ls-data .add').remove();
+                        {% endif %}
+
+                        $.ajax(context_url + '/api/session/list/user/{{ user.id }}').done(function(resp) {
                             if (resp.success) {
                                 resp.data.forEach(function(sess) {
                                     $('<li' + (sess.id == '{{ session.id }}' ? ' class="active"' : '') + '>' +
@@ -750,6 +811,27 @@
                                     });
                                 }
                             }
+                        });
+
+                        $(document).on('click', '#btn_browse_workspaces', function() {
+                            $('#select_workspace_modal').modal();
+                        });
+
+                        $('#select_workspace_modal').on('show.bs.modal', function (e) {
+                            var $modal = $(this);
+
+                            $.get(context_url + '/api/session/list', function(resp) {
+                                if (resp.success) {
+                                    $tbody = $('#tbl_select_workspace_list tbody').empty();
+                                    resp.data.forEach(function(d) {
+                                        $('<tr session-id="' + d.id + '" class="data-item" style="cursor: pointer;">' +
+                                            '<td>' +
+                                                '<a href="' + context_url + '/session/' + d.id + '"><span>' + d.label + '</span></a>' +
+                                            '</td>' +
+                                        '</tr>').data(d).appendTo($tbody);
+                                    });
+                                }
+                            });
                         });
 
                         $(document).on('click', '.ls-data .add', function() {
@@ -785,7 +867,8 @@
 
                                         $.post(context_url + '/api/session/eval/{{ session.id }}', {
                                             'user_id': '{{ user.id }}',
-                                            'cmd': 'df' + idx + ' <- read.spss(data.path("' + data.original_filename + '"), to.data.frame=TRUE)'
+                                            'cmd': 'df' + idx + ' <- ' + data.r_handler.replace('?', '"' + data.original_filename + '"'),
+                                            // 'cmd': 'df' + idx + ' <- read.spss(data.path("' + data.original_filename + '"), to.data.frame=TRUE)'
                                         }, function (resp2) {
                                             if (resp2.success) {
                                                 $('<li class="data" var-index="' + idx + '">' +
@@ -823,15 +906,15 @@
                                 return _d;
                             });
 
-                            var paragraphs = [];
-                            $('.paragraph').each(function() {
-                                $title = $(this).find('.paragraph-title');
-                                $input = $(this).find('.paragraph-input');
+                            var cells = [];
+                            $('.cell').each(function() {
+                                $title = $(this).find('.cell-title');
+                                $input = $(this).find('.cell-input');
                                 $output_table = $(this).find('.output-table');
                                 $output_image = $(this).find('.output-image');
-                                $output_plain = $(this).find('.output-plain .paragraph-output').data('codemirror');
+                                $output_plain = $(this).find('.output-plain .cell-output').data('codemirror');
 
-                                paragraphs.push({
+                                cells.push({
                                     'title' : $title.html(),
                                     'input' : $input.data('codemirror').getValue(),
                                     'output' : {
@@ -844,7 +927,7 @@
 
                             var to_save = {
                                 'data': data,
-                                'paragraphs': paragraphs
+                                'paragraphs': cells
                             };
 
                             $.post(context_url + '/api/session/save/{{ session.id }}', {
@@ -954,12 +1037,56 @@
                                 }
                             });
 
-                            $('.paragraph-title').editable({
+                            $('.cell-title').editable({
                                 type: 'text',
                                 pk: '{{ session.id }}',
                                 url: context_url + '/api/session/fake',
-                                title: 'Enter paragraph name'
+                                title: 'Enter cell name'
                             });
+                        });
+
+                        $(document).on('click', '[data-widget=add]', function() {
+                            $btn_wrapper = $(this).parents().filter(function () {
+                                if ($(this).hasClass('floating-button-wrapper')) return true;
+                            });
+
+                            $first_par = $('.cell:first');
+
+                            $cpar = $first_par.clone().insertAfter($btn_wrapper);
+                            $btn_wrapper.clone().insertAfter($cpar);
+
+                            $cpar.find('.CodeMirror').remove();
+                            $cpar.find('.input-wrapper textarea').val('')
+                                .codemirror({
+                                    'mode': 'r',
+                                    'lineNumbers': true,
+                                    'indentUnit': 2,
+                                    'tabSize': 2,
+                                    'indentWithTabs': true,
+                                    'scrollbarStyle': 'overlay'
+                                });
+
+                            $cpar.find('.time-wrapper .sp-et').html('');
+                            $cpar.find('.output-wrapper .output-table, .output-wrapper .output-image').html('');
+                            $cpar.find('.output-wrapper .output-plain').find('.CodeMirror').remove();
+                            $cpar.find('.output-wrapper .output-plain textarea').val('');
+
+                            $cpar.find('.cell-title').html('Untitled Cell').editable({
+                                type: 'text',
+                                pk: '{{ session.id }}',
+                                url: context_url + '/api/session/fake',
+                                title: 'Enter cell name'
+                            });
+                        });
+
+                        $(document).on('click', '[data-widget=remove2]', function() {
+                            $par = $(this).parents().filter(function () {
+                                if ($(this).hasClass('cell')) return true;
+                            });
+                            $addb = $par.next();
+
+                            $par.remove();
+                            $addb.remove();
                         });
 
                         $loading_cover.fadeOut();

@@ -19,7 +19,8 @@ class APIData(Blueprint):
         @self.route('/list/', methods=['GET'])
         @self.route('/list', methods=['GET'])
         def api_data_list():
-            sessions = DataModel.query.options(joinedload(DataModel.tags, innerjoin=True)).filter().all()
+            # sessions = DataModel.query.options(joinedload(DataModel.tags, innerjoin=True)).filter().all()
+            sessions = DataModel.query.filter().all()
             js = json.dumps([r.as_dict() for r in sessions], default=alchemyencoder)
             return Response(message="OK", data=json.loads(js),
                             status=200, mimetype='application/json')
