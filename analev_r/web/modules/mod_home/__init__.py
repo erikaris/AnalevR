@@ -71,6 +71,12 @@ http://localhost:8080/activate/id/{}'''.format(user.id)
 
             return redirect(common.options['BASE_URL'] + '/', code=302)
 
+        @self.route('/login', methods=['GET'])
+        def home_login_get():
+            print(session)
+
+            return render_template('post_login.html', request_path=request.path, next_path='/')
+
         @self.route('/login', methods=['POST'])
         def home_login_post():
             email = request.form.get('email', '')
@@ -89,7 +95,7 @@ http://localhost:8080/activate/id/{}'''.format(user.id)
                 else:
                     session['user'] = user
 
-            return render_template('post_login.html', user=user, request_path=request.path, next_path=next_path)
+            return render_template('post_login.html', user=user, session=session, request_path=request.path, next_path=next_path)
 
         @self.route('/', defaults={'id': None}, methods=['GET'])
         @self.route('/session/<id>/', methods=['GET'])
@@ -127,7 +133,7 @@ http://localhost:8080/activate/id/{}'''.format(user.id)
         @self.route('/logout', methods=['GET'])
         def home_logout():
             session['user'] = None
-            return redirect(common.options['BASE_URL'] + '/', code=302)
+            return render_template('post_logout.html', request_path=request.path, next_path='/')
 
         @self.route('/activate/id/<id>/', methods=['GET'])
         @self.route('/activate/id/<id>', methods=['GET'])

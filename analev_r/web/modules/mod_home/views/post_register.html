@@ -64,9 +64,17 @@
 
     <script type="text/javascript">
         var request_url = '{{ request_path }}',
-            context_url = location.protocol + '//' + location.host + location.pathname.replace(request_url, '');
+            pathname = '/' + location.pathname.substring(1).replace(request_url, ''),
+            context_url = location.protocol + '//' + location.host + (pathname.length > 0 ? pathname : ''),
+            $loading_indicator = $('.loading'),
+            $logo = $('.logo');
 
-        location.href = context_url;
+        if (context_url.substring(context_url.length-1) == '/') {
+            context_url = context_url.substring(0, context_url.length-1);
+        }
+
+        $logo.attr('src', context_url + '/static/images/analev-r.png');
+        $loading_indicator.css('background', 'url(' + context_url + '/static/images/loading.gif)');
     </script>
 </body>
 </html>
