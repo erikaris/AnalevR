@@ -74,60 +74,6 @@
                 return result;
             };
         })(jQuery);
-
-        var waitingDialog = waitingDialog || (function ($) {
-            'use strict';
-
-            // Creating modal dialog's DOM
-            var $dialog = $(
-                '<div class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">' +
-                '<div class="modal-dialog modal-m">' +
-                '<div class="modal-content">' +
-                    '<div class="modal-header"><h3 style="margin:0;"></h3></div>' +
-                    '<div class="modal-body">' +
-                        '<div class="progress progress-striped active" style="margin-bottom:0;"><div class="progress-bar" style="width: 100%"></div></div>' +
-                    '</div>' +
-                '</div></div></div>');
-
-            return {
-                show: function (message, options) {
-                    // Assigning defaults
-                    if (typeof options === 'undefined') {
-                        options = {};
-                    }
-                    if (typeof message === 'undefined') {
-                        message = 'Loading';
-                    }
-                    var settings = $.extend({
-                        dialogSize: 'm',
-                        progressType: '',
-                        onHide: null // This callback runs after the dialog was hidden
-                    }, options);
-
-                    // Configuring dialog
-                    $dialog.find('.modal-dialog').attr('class', 'modal-dialog').addClass('modal-' + settings.dialogSize);
-                    $dialog.find('.progress-bar').attr('class', 'progress-bar');
-                    if (settings.progressType) {
-                        $dialog.find('.progress-bar').addClass('progress-bar-' + settings.progressType);
-                    }
-                    $dialog.find('h3').text(message);
-
-                    // Adding callbacks
-                    if (typeof settings.onHide === 'function') {
-                        $dialog.off('hidden.bs.modal').on('hidden.bs.modal', function (e) {
-                            settings.onHide.call($dialog);
-                        });
-                    }
-                    // Opening dialog
-                    $dialog.modal();
-                    return $dialog;
-                },
-                hide: function () {
-                    $dialog.modal('hide');
-                    return $dialog;
-                }
-            };
-        })(jQuery);
     </script>
 
     <style>
@@ -522,6 +468,12 @@
                     <button type="button" class="btn btn-box-tool" data-widget="save">
                         <i class="fa fa-save"></i>
                     </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="download">
+                        <i class="fa fa-download"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="upload">
+                        <i class="fa fa-upload"></i>
+                    </button>
                     <button type="button" class="btn btn-box-tool" data-widget="trash">
                         <i class="fa fa-trash"></i>
                     </button>
@@ -615,6 +567,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.6.0/Sortable.min.js"></script>
+    <script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.0/addon/scroll/simplescrollbars.min.js"></script>
@@ -788,6 +741,7 @@
                         // Disable some controls when not owner
                         {% if user.id != session.user_id %}
                             $('[data-widget=save]').remove();
+                            $('[data-widget=upload]').remove();
                             $('[data-widget=trash]').remove();
                             $('[data-widget=run]').remove();
                             $('[data-widget=copy]').remove();
@@ -947,6 +901,19 @@
                             }, function(resp) {
 
                             });
+                        });
+
+                        $(document).on('click', '.btn[data-widget=download]', function() {
+                            $.get(context_url + '/api/session/download/{{ session.id }}', function(resp) {
+                                if (resp.success) {
+                                    var blob = new Blob([resp.data], {type: "text/plain;charset=utf-8"});
+                                    saveAs(blob, "{{ session.label }}");
+                                }
+                            });
+                        });
+
+                        $(document).on('click', '.btn[data-widget=upload]', function() {
+
                         });
 
                         $(document).on('click', '.btn[data-widget=trash]', function() {

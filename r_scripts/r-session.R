@@ -100,15 +100,18 @@ while(1) {
                 cmd = paste(cmd, '\n', 'ggsave("tmp.png")', sep='');
             }
 
-            if (grepl('<-', cmd)) {
-                cat('[', session.port, ']', 'Executing command', cmd, '\n');
+            cat('[', session.port, ']', 'Executing command', cmd, '\n');
+            resp <<- eval(parse(text=cmd));
 
-                eval(parse(text=cmd));
-                resp <<- 'OK';
-            } else {
-                cat('[', session.port, ']', 'Evaluating command', cmd, '\n');
-                resp <<- eval(parse(text=cmd));
-            }
+            # if (grepl('<-', cmd)) {
+            #     cat('[', session.port, ']', 'Executing command', cmd, '\n');
+            #
+            #     eval(parse(text=cmd));
+            #     resp <<- 'OK';
+            # } else {
+            #     cat('[', session.port, ']', 'Evaluating command', cmd, '\n');
+            #     resp <<- eval(parse(text=cmd));
+            # }
 
             eval(parse(text='dev.off()'));
         }

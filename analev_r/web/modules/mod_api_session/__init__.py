@@ -232,6 +232,26 @@ class APISession(Blueprint):
                 return Response(success=False, message=str(e), status=200,
                                 mimetype='application/json')
 
+        @self.route('/download/<id>/', methods=['GET'])
+        @self.route('/download/<id>', methods=['GET'])
+        def api_session_download(id):
+            from analev_r.common import LZW
+
+            try:
+                data = '[]'
+
+                r_nb = os.path.join(common.options['WORKSPACE_DIR'], id, 'notebook.json')
+                if os.path.exists(r_nb):
+                    with open(r_nb, 'r') as f:
+                        data = f.read()
+
+                compressed = LZW.compress(data)
+                return Response(success=True, message='OK', data=','.join(str(i) for i in compressed), status=200,
+                                mimetype='application/json')
+            except Exception as e:
+                return Response(success=False, message=str(e), status=200,
+                                mimetype='application/json')
+
         @self.route('/delete/<id>/', methods=['POST'])
         @self.route('/delete/<id>', methods=['POST'])
         def api_session_delete(id):

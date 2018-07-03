@@ -8,8 +8,6 @@ process.response <- function(resp) {
     library(jsonlite)
 
     # dtype <- typeof(resp)
-    dtype <- 'plain'
-    dresp <- toString(resp)
     dstart <- proc.time()
 
     if (is.data.frame(resp)) {
@@ -22,6 +20,16 @@ process.response <- function(resp) {
         unlink("tmp.png")
         dtype <- 'image'
         dresp <- b64i
+    }
+
+    else if (typeof(resp) == 'closure') {
+        dtype <- 'plain'
+        dresp <- 'OK'
+    }
+
+    else {
+        dtype <- 'plain'
+        dresp <- toString(resp)
     }
 
     # eval(parse(text='if(file.exists("tmp.png")) { b64i <- base64enc::base64encode(readBin("tmp.png", "raw", file.info("tmp.png")[1, "size"]), "txt"); unlink("tmp.png"); }'));
