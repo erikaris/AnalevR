@@ -64,7 +64,7 @@
 
     <script type="text/javascript">
         var request_url = '{{ request_path }}',
-            pathname = '/' + location.pathname.substring(1).replace(request_url, ''),
+            pathname = '/' + location.pathname.substring(1).replace(request_url.substring(1), ''),
             context_url = location.protocol + '//' + location.host + (pathname.length > 0 ? pathname : ''),
             $loading_indicator = $('.loading'),
             $logo = $('.logo');

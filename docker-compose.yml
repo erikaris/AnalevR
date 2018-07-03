@@ -22,24 +22,24 @@ services:
     ports:
       - "8881:80"
 
-  analev-r:
-    build: .
-    depends_on:
-      - mysql-server
-    links:
-      - mysql-server:mysql-server
-    ports:
-      - "8880:8080"
-    command: "python3 /opt/analev-r/bin/analev-r-server -D mysql+pymysql://root:toor@mysql-server/analev_r"
-
-  analev-r-proxy:
-    build: php_proxy
-    volumes:
-      - ./php_proxy:/var/www/html
-    depends_on:
-      - analev-r
-    links:
-      - analev-r:analev
-    ports:
-      - "8882:80"
-    command: apache2-foreground
+#  analev-r:
+#    build: .
+#    depends_on:
+#      - mysql-server
+#    links:
+#      - mysql-server:mysql-server
+#    ports:
+#      - "8880:8080"
+#    command: "python3 /opt/analev-r/bin/analev-r-server -D mysql+pymysql://root:toor@mysql-server/analev_r"
+#
+#  analev-r-proxy:
+#    build: php_proxy
+#    volumes:
+#      - ./php_proxy:/var/www/html
+#    depends_on:
+#      - analev-r
+#    links:
+#      - analev-r:analev
+#    ports:
+#      - "8882:80"
+#    command: apache2-foreground
