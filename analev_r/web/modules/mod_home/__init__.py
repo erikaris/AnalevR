@@ -161,14 +161,11 @@ Thank you for registering AnalevR. Please activate your account by follow this l
             if user:
                 user.is_activated = True
                 common.db.session.commit()
+                session['error'] = 'Your account is activated. Please login to continue'
             else:
                 session['error'] = 'The activation link is invalid'
 
-            if session['error']:
-                return session['error']
-            else:
-                session['error'] = 'Your account is activated. Please login to continue'
-                return redirect(common.options['BASE_URL'] + '/', code=302)
+            return render_template('post_activate.html', request_path=request.path, next_path='/')
 
         @self.route('/resend-activation', methods=['POST'])
         def home_resend_activation_post():
@@ -180,4 +177,4 @@ Thank you for registering AnalevR. Please activate your account by follow this l
             send_email(email, user.id, 'https://simpeg.bps.go.id/analev-r')
 
             session['error'] = 'Activation email has been sent. Please follow the link attached in the email to activate.'
-            return redirect(common.options['BASE_URL'] + '/', code=302)
+            return render_template('post_resend_link.html', request_path=request.path, next_path='/')
