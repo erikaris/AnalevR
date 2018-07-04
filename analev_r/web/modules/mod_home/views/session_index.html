@@ -904,16 +904,47 @@
                         });
 
                         $(document).on('click', '.btn[data-widget=download]', function() {
-                            $.get(context_url + '/api/session/download/{{ session.id }}', function(resp) {
-                                if (resp.success) {
-                                    var blob = new Blob([resp.data], {type: "text/plain;charset=utf-8"});
-                                    saveAs(blob, "{{ session.label }}");
-                                }
-                            });
+                            $('<form class="form-download-workspace" method="get" action="' + context_url + '/api/session/download/{{ session.id }}' + '"><button type="submit" style="display:none"></button></form>')
+                            .appendTo($('body'))
+                            .submit();
                         });
 
                         $(document).on('click', '.btn[data-widget=upload]', function() {
+                            $form = $('<form class="form-upload-workspace" method="post" enctype="multipart/form-data" action="' + context_url + '/api/session/upload/{{ session.id }}' + '">' + 
+                                '<input type="file"/>' + 
+                                '<button type="submit">' + 
+                            '</button></form>')
+                            .appendTo($('body'));
 
+                            $form.on('submit', function(e) {
+                                files = $form.find('input[type=file]')[0].files;
+                                $.each(files, function(key, file) {
+                                    var formData = new FormData();
+                                    formData.append("file", file);
+
+                                    $.ajax({
+                                        url: $form.attr("action"),
+                                        data: formData,
+                                        cache: false,
+                                        contentType: false,
+                                        processData: false,
+                                        method: 'POST',
+                                        success: function(resp){
+                                            if (resp.success) {
+                                                location.reload();
+                                            }
+                                        }
+                                    });
+                                });
+
+                                return false;
+                            });
+
+                            $form.find('input[type=file]').on('change', function(e) {
+                                $form.submit();
+                            });
+
+                            $form.find('input[type=file]').trigger('click');
                         });
 
                         $(document).on('click', '.btn[data-widget=trash]', function() {

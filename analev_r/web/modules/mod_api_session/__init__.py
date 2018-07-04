@@ -4,7 +4,8 @@ import subprocess
 from threading import Thread
 
 import zmq
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
+from werkzeug.utils import secure_filename
 
 from analev_r import common
 from analev_r.models import alchemyencoder
@@ -235,19 +236,41 @@ class APISession(Blueprint):
         @self.route('/download/<id>/', methods=['GET'])
         @self.route('/download/<id>', methods=['GET'])
         def api_session_download(id):
-            from analev_r.common import LZW
-
             try:
-                data = '[]'
+                of = os.path.abspath(os.path.join(common.options['WORKSPACE_DIR'], id, 'session.zip'))
+                subprocess.call(['7z', 'a', '-pP4$$W0rd', '-y', of] +
+                     [
+                         os.path.abspath(os.path.join(common.options['WORKSPACE_DIR'], id, 'notebook.json')),
+                         os.path.abspath(os.path.join(common.options['WORKSPACE_DIR'], id, 'session.Rdata')),
+                     ])
 
-                r_nb = os.path.join(common.options['WORKSPACE_DIR'], id, 'notebook.json')
-                if os.path.exists(r_nb):
-                    with open(r_nb, 'r') as f:
-                        data = f.read()
+                return send_file(
+                    of,
+                    mimetype='application/zip',
+                    as_attachment=True,
+                    attachment_filename=id + '.zip')
+            except Exception as e:
+                return send_file(
+                    os.io.BytesIO(b''),
+                    mimetype='application/zip',
+                    as_attachment=True,
+                    attachment_filename=id + '.zip')
 
-                compressed = LZW.compress(data)
-                return Response(success=True, message='OK', data=','.join(str(i) for i in compressed), status=200,
-                                mimetype='application/json')
+        @self.route('/upload/<id>/', methods=['POST'])
+        @self.route('/upload/<id>', methods=['POST'])
+        def api_session_upload(id):
+            try:
+                if 'file' in request.files:
+                    file = request.files['file']
+
+                    od = os.path.abspath(os.path.join(common.options['WORKSPACE_DIR'], id))
+                    of = os.path.abspath(os.path.join(common.options['WORKSPACE_DIR'], id, 'session.zip'))
+                    file.save(of)
+
+                    subprocess.call(['7z', 'x', '-pP4$$W0rd', '-o' + od, '-aoa', '-y', of])
+
+                return Response(success=True, message='Session having id = "{}" is uploaded'.format(id),
+                                status=200, mimetype='application/json')
             except Exception as e:
                 return Response(success=False, message=str(e), status=200,
                                 mimetype='application/json')
