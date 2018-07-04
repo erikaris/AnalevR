@@ -30,7 +30,7 @@ services:
       - mysql-server:mysql-server
     ports:
       - "8880:8080"
-    command: "python3 /opt/analev-r/bin/analev-r-server -D mysql+pymysql://root:toor@mysql-server/analev_r"
+    command: "python3 /opt/analev-r/bin/analev-r-server -D mysql+pymysql://root:toor@mysql-server/analev_r -W /opt/analev-r/r_workspace -C ./gmail_credential_compose.json"
 #
 #  analev-r-proxy:
 #    build: php_proxy
