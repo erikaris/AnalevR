@@ -16,6 +16,34 @@ class Home(Blueprint):
                            static_folder=os.path.join(os.path.dirname(__file__), 'static'),
                            static_url_path='/static/home')
 
+        def send_email(to, user_id, domain='http://localhost:8080'):
+            from __future__ import print_function
+            import base64
+            from email.mime.text import MIMEText
+            from googleapiclient.discovery import build
+            from httplib2 import Http
+            from oauth2client import file, client, tools
+
+            # Setup the Gmail API
+            SCOPES = 'https://www.googleapis.com/auth/gmail.compose'
+            store = file.Storage('gmail_credential_compose.json')
+            creds = store.get()
+            service = build('gmail', 'v1', http=creds.authorize(Http()))
+
+            email = to
+            msg = '''\
+            Thank you for registering AnalevR. Please activate your account by follow this link
+            {}/activate/id/{}'''.format(domain, user_id)
+
+            message = MIMEText(msg)
+            message['to'] = to
+            message['from'] = 'user.analev.r@gmail.com'
+            message['subject'] = 'Activation Link'
+            message = {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
+
+            message = service.users().messages().send(userId='me', body=message).execute()
+            return message['id']
+
         @self.route('/register/', methods=['POST'])
         @self.route('/register', methods=['POST'])
         def home_register_post():
@@ -56,18 +84,7 @@ class Home(Blueprint):
             common.db.session.add(user)
             common.db.session.commit()
 
-            msg = '''\
-From: Analev-R <user.analev.r@gmail.com>
-Subject: Activation Link
-
-Thank you for registering AnalevR. Please activate your account by follow this link
-http://localhost:8080/activate/id/{}'''.format(user.id)
-
-            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-            server.ehlo()
-            server.login('user.analev.r', 'python.r')
-            server.sendmail('user.analev.r@gmail.com', email, msg)
-            server.close()
+            send_email(email, user.id, 'https://simpeg.bps.go.id/analev-r')
 
             return redirect(common.options['BASE_URL'] + '/', code=302)
 
@@ -161,18 +178,7 @@ http://localhost:8080/activate/id/{}'''.format(user.id)
             session['error'] = None
             user = UserModel.query.filter(UserModel.email == email).first()
 
-            msg = '''\
-From: Analev-R <user.analev.r@gmail.com>
-Subject: Activation Link
-
-Thank you for registering AnalevR. Please activate your account by follow this link
-http://localhost:8080/activate/id/{}'''.format(user.id)
-
-            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-            server.ehlo()
-            server.login('user.analev.r', 'python.r')
-            server.sendmail('user.analev.r@gmail.com', email, msg)
-            server.close()
+            send_email(email, user.id, 'https://simpeg.bps.go.id/analev-r')
 
             session['error'] = 'Activation email has been sent. Please follow the link attached in the email to activate.'
             return redirect(common.options['BASE_URL'] + '/', code=302)
