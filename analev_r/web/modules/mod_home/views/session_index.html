@@ -436,18 +436,6 @@
                     </div>
                 </div>
 
-                <!--&lt;!&ndash; search form &ndash;&gt;-->
-                <!--<form action="#" method="get" class="sidebar-form">-->
-                    <!--<div class="input-group">-->
-                        <!--<input type="text" name="q" class="form-control" placeholder="Search...">-->
-                        <!--<span class="input-group-btn">-->
-                    <!--<button type="submit" name="search" id="search-btn" class="btn btn-flat">-->
-                      <!--<i class="fa fa-search"></i>-->
-                    <!--</button>-->
-                  <!--</span>-->
-                    <!--</div>-->
-                <!--</form>-->
-
                 <!-- sidebar menu: : style can be found in sidebar.less -->
                 <ul class="sidebar-menu" data-widget="tree">
                     <li class="header">MAIN NAVIGATION</li>
@@ -479,16 +467,16 @@
                 </h1>
 
                 <div class="breadcrumb">
-                    <button type="button" class="btn btn-box-tool" data-widget="save">
+                    <button type="button" class="btn btn-box-tool" data-widget="save" title="Save workspace">
                         <i class="fa fa-save"></i>
                     </button>
-                    <button type="button" class="btn btn-box-tool" data-widget="download">
+                    <button type="button" class="btn btn-box-tool" data-widget="download" title="Download workspace">
                         <i class="fa fa-download"></i>
                     </button>
-                    <button type="button" class="btn btn-box-tool" data-widget="upload">
+                    <button type="button" class="btn btn-box-tool" data-widget="upload" title="Restore workspace">
                         <i class="fa fa-upload"></i>
                     </button>
-                    <button type="button" class="btn btn-box-tool" data-widget="trash">
+                    <button type="button" class="btn btn-box-tool" data-widget="trash" title="Remove workspace">
                         <i class="fa fa-trash"></i>
                     </button>
                 </div>
@@ -506,25 +494,28 @@
             <!-- Main content -->
             <section class="content">
                 <div class="row">
-                    <div class="col-md-12 floating-button-wrapper">
-                        <div class="floating-button text-center" data-widget="add"><i class="fa fa-plus"></i></div>
-                    </div>
                     <div class="col-md-12 cell">
                         <div class="box">
                             <div class="box-header with-border">
                                 <h3 class="box-title"><a href="#" class="cell-title">Untitled Cell</a></h3>
 
                                 <div class="box-tools pull-right">
-                                    <button type="button" class="btn btn-box-tool" data-widget="run">
+                                    <button type="button" class="btn btn-box-tool" data-widget="run" title="Run this cell">
                                         <i class="fa fa-play"></i>
                                     </button>
-                                    <button type="button" class="btn btn-box-tool" data-widget="copy">
+                                    <button type="button" class="btn btn-box-tool" data-widget="insert-up" title="Insert before this cell">
+                                        <i class="fa fa-sort-up"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-box-tool" data-widget="insert-down" title="Insert after this cell">
+                                        <i class="fa fa-sort-down"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-box-tool" data-widget="copy" title="Duplicate this cell">
                                         <i class="fa fa-copy"></i>
                                     </button>
-                                    <button type="button" class="btn btn-box-tool" data-widget="collapse">
+                                    <button type="button" class="btn btn-box-tool" data-widget="collapse" title="Collapse this cell">
                                         <i class="fa fa-minus"></i>
                                     </button>
-                                    <button type="button" class="btn btn-box-tool" data-widget="remove2">
+                                    <button type="button" class="btn btn-box-tool" data-widget="remove2" title="Remove this cell">
                                         <i class="fa fa-times"></i>
                                     </button>
                                 </div>
@@ -557,9 +548,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-12 floating-button-wrapper">
-                        <div class="floating-button text-center" data-widget="add"><i class="fa fa-plus"></i></div>
-                    </div>
                 </div>
             </section>
         </div>
@@ -582,6 +570,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/x-editable/1.5.0/bootstrap3-editable/js/bootstrap-editable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.6.0/Sortable.min.js"></script>
     <script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.39.0/addon/scroll/simplescrollbars.min.js"></script>
@@ -672,6 +661,21 @@
             {% else %}
                 $loading_text.html('Starting session...');
 
+                function delete_workspace(workspace_id) {
+                    title = $('.workspace [workspace-id=' + workspace_id + '] .title').html();
+                    bootbox.confirm('Are you sure to remove workspace "' + title + '"?', function(yes) {
+                        if (yes) {
+                            $.post(context_url + '/api/session/delete/' + workspace_id, {
+                                'user_id': '{{ user.id }}'
+                            }, function(resp) {
+                                if (resp.success) {
+                                    location.href = context_url;
+                                }
+                            });
+                        }
+                    });
+                }
+
                 $.post(context_url + '/api/session/start/{{ session.id }}', function(resp) {
                     if (resp.success) {
                         $loading_text.html('Initializing workspace...');
@@ -759,7 +763,8 @@
                             $('[data-widget=trash]').remove();
                             $('[data-widget=run]').remove();
                             $('[data-widget=copy]').remove();
-                            $('[data-widget=add]').remove();
+                            $('[data-widget=insert-up]').remove();
+                            $('[data-widget=insert-down]').remove();
                             $('.ls-data .data .remove').remove();
                             $('.ls-data .add').remove();
                         {% endif %}
@@ -769,8 +774,8 @@
                                 resp.data.forEach(function(sess) {
                                     $('<li workspace-id="' + sess.id + '" class="workspace' + (sess.id == '{{ session.id }}' ? ' active' : '') + '">' +
                                         '<a href="' + context_url + '/session/' + sess.id + '">' +
-                                            '<i class="fa fa-circle-o"></i>' +
-                                            sess.label +
+                                            '<i class="fa fa-circle-o"></i>' + 
+                                            '<span class="title">' + sess.label + '</span>' + 
                                         '</a>' +
                                         '<a href="#" class="close"><i class="fa fa-close"></i></a>' +
                                     '</li>').appendTo($('.list-workspaces'));
@@ -783,13 +788,7 @@
                                     });
 
                                     workspace_id = $li.attr('workspace-id');
-                                    $.post(context_url + '/api/session/delete/' + workspace_id, {
-                                        'user_id': '{{ user.id }}'
-                                    }, function(resp) {
-                                        if (resp.success) {
-                                            location.href = context_url;
-                                        }
-                                    });
+                                    delete_workspace(workspace_id);
                                 });
 
                                 if (resp.data.length < 10) {
@@ -979,13 +978,7 @@
                         });
 
                         $(document).on('click', '.btn[data-widget=trash]', function() {
-                            $.post(context_url + '/api/session/delete/{{ session.id }}', {
-                                'user_id': '{{ user.id }}'
-                            }, function(resp) {
-                                if (resp.success) {
-                                    location.href = context_url;
-                                }
-                            });
+                            delete_workspace('{{ session.id }}');
                         });
 
                         $(document).on('click', '.btn[data-widget=run]', function() {
@@ -1085,18 +1078,12 @@
                             });
                         });
 
-                        $(document).on('click', '[data-widget=add]', function() {
-                            $btn_wrapper = $(this).parents().filter(function () {
-                                if ($(this).hasClass('floating-button-wrapper')) return true;
-                            });
+                        function insert_box(curr_box, is_after = true) {
+                            if (is_after) $new_box = $(curr_box).clone().insertAfter($box);
+                            else $new_box = $(curr_box).clone().insertBefore($box);
 
-                            $first_par = $('.cell:first');
-
-                            $cpar = $first_par.clone().insertAfter($btn_wrapper);
-                            $btn_wrapper.clone().insertAfter($cpar);
-
-                            $cpar.find('.CodeMirror').remove();
-                            $cpar.find('.input-wrapper textarea').val('')
+                            $new_box.find('.CodeMirror').remove();
+                            $new_box.find('.input-wrapper textarea').val('')
                                 .codemirror({
                                     'mode': 'r',
                                     'lineNumbers': true,
@@ -1106,27 +1093,55 @@
                                     'scrollbarStyle': 'overlay'
                                 });
 
-                            $cpar.find('.time-wrapper .sp-et').html('');
-                            $cpar.find('.output-wrapper .output-table, .output-wrapper .output-image').html('');
-                            $cpar.find('.output-wrapper .output-plain').find('.CodeMirror').remove();
-                            $cpar.find('.output-wrapper .output-plain textarea').val('');
+                            $new_box.find('.time-wrapper .sp-et').html('');
+                            $new_box.find('.output-wrapper .output-table, .output-wrapper .output-image').html('');
+                            $new_box.find('.output-wrapper .output-plain').find('.CodeMirror').remove();
+                            $new_box.find('.output-wrapper .output-plain textarea').val('');
 
-                            $cpar.find('.cell-title').html('Untitled Cell').editable({
+                            $new_box.find('.cell-title').html('Untitled Cell').editable({
                                 type: 'text',
                                 pk: '{{ session.id }}',
                                 url: context_url + '/api/session/fake',
                                 title: 'Enter cell name'
                             });
+                        }
+
+                        $(document).on('click', '[data-widget=insert-up]', function() {
+                            $box = $(this).parents().filter(function() {
+                                if ($(this).hasClass('cell')) return true;
+                                return false;
+                            });
+
+                            insert_box($box, false);
+                        });
+
+                        $(document).on('click', '[data-widget=insert-down]', function() {
+                            $box = $(this).parents().filter(function() {
+                                if ($(this).hasClass('cell')) return true;
+                                return false;
+                            });
+
+                            insert_box($box, true);
                         });
 
                         $(document).on('click', '[data-widget=remove2]', function() {
-                            $par = $(this).parents().filter(function () {
-                                if ($(this).hasClass('cell')) return true;
+                            $par = $(this).parents().filter(function() {
+                                if($(this).hasClass('box-header')) return true;
+                                return false;
                             });
-                            $addb = $par.next();
 
-                            $par.remove();
-                            $addb.remove();
+                            title = $par.find('.box-title a').html();
+
+                            bootbox.confirm('Are you sure to remove cell "' + title + '"?', function(yes) {
+                                if (yes) {
+                                    $par = $par.parents().filter(function() {
+                                        if($(this).hasClass('box')) return true;
+                                        return false;
+                                    });
+
+                                    $par.slideUp("normal", function() { $par.remove(); } );
+                                }
+                            });
                         });
 
                         $loading_cover.fadeOut();
