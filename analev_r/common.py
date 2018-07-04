@@ -10,6 +10,7 @@ session_port = 5100
 heartbeat_port = 5600
 locks = {}
 semaphores = {}
+port_pid_map = {}
 
 def get_lock(id):
     import threading

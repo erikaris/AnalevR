@@ -1,5 +1,6 @@
 import json
 import os
+import signal
 import subprocess
 from threading import Thread
 
@@ -95,8 +96,11 @@ class APISession(Blueprint):
                     proc = subprocess.Popen(['Rscript',
                                              os.path.join(common.options['SCRIPT_DIR'], 'r-session.R'),
                                              '{}'.format(port), session.id,
-                                             "tcp://localhost:{}".format(common.heartbeat_port)])
+                                             "tcp://localhost:{}".format(common.heartbeat_port)],
+                                            preexec_fn=os.setsid)
+                    common.port_pid_map[port] = proc
                     # print(proc.pid)
+
                     if sock.recv_string() == 'pong':
                         is_started = True
                         ctx.destroy()
@@ -158,6 +162,20 @@ class APISession(Blueprint):
                 session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
 
                 common.get_semaphore(id).acquire()
+
+                # Quit processor
+                if 'quit(' in cmd or 'q(' in cmd:
+                    pid = common.port_pid_map[session.port]
+                    os.killpg(os.getpgid(pid), signal.SIGTERM)
+                    # os.kill(pid, signal.SIGTERM)
+
+                    pid.terminate()
+                    pid.kill()
+
+                    return Response(success=True, data={
+                        'text': 'Shutting down...', 'type': 'plain', 'time': '0'
+                    }, message='', status=200, mimetype='application/json')
+
                 # Setup receiver
                 cb_port = common.random_port()
                 cb_ctx = zmq.Context()

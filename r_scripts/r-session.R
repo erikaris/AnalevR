@@ -72,7 +72,8 @@ if (connect.socket(session.socket.heartbeat, broker.uri)) {
 save.image(file=session.filename)
 
 # READY TO ACCEPT MESSAGE
-while(1) {
+running = 1
+while(running) {
     cat('[', session.port, ']', 'Reading message...', '\n');
 
     data = receive.string(session.socket.out)
