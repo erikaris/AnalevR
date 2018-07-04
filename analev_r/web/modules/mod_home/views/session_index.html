@@ -77,6 +77,20 @@
     </script>
 
     <style>
+        /* Treeview */
+        .treeview-menu > li {
+            position: relative;
+        }
+        .treeview-menu > li a.close {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            display: none;
+        }
+        .treeview-menu > li:hover a.close {
+            display: block;
+        }
+
         /* Loading Cover */
         .cover {
             background: white;
@@ -753,12 +767,29 @@
                         $.ajax(context_url + '/api/session/list/user/{{ user.id }}').done(function(resp) {
                             if (resp.success) {
                                 resp.data.forEach(function(sess) {
-                                    $('<li' + (sess.id == '{{ session.id }}' ? ' class="active"' : '') + '>' +
+                                    $('<li workspace-id="' + sess.id + '" class="workspace' + (sess.id == '{{ session.id }}' ? ' active' : '') + '">' +
                                         '<a href="' + context_url + '/session/' + sess.id + '">' +
                                             '<i class="fa fa-circle-o"></i>' +
                                             sess.label +
                                         '</a>' +
+                                        '<a href="#" class="close"><i class="fa fa-close"></i></a>' +
                                     '</li>').appendTo($('.list-workspaces'));
+                                });
+
+                                $('.list-workspaces li .close').on('click', function() {
+                                    $li = $(this).parents().filter(function() {
+                                        if ($(this).addClass('workspace')) return true;
+                                        return false;
+                                    });
+
+                                    workspace_id = $li.attr('workspace-id');
+                                    $.post(context_url + '/api/session/delete/' + workspace_id, {
+                                        'user_id': '{{ user.id }}'
+                                    }, function(resp) {
+                                        if (resp.success) {
+                                            location.href = context_url;
+                                        }
+                                    });
                                 });
 
                                 if (resp.data.length < 10) {
