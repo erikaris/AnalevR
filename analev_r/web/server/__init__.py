@@ -121,6 +121,9 @@ def main():
     parser.add_option("-S", "--script-dir",
                       dest="SCRIPT_DIR", default=None,
                       help="Script directory")
+    parser.add_option("-C", "--credential-file",
+                      dest="CREDENTIAL_FILE", default=None,
+                      help="Gmail Credential JSON File")
     parser.add_option("-d", "--debug",
                       action="store_true", dest="DEBUG", default=False,
                       help="Print server debug messages")
@@ -136,6 +139,7 @@ def main():
         options['WORKSPACE_DIR'] = os.path.abspath(os.path.join(options['BASE_DIR'], os.pardir, os.pardir, 'r_workspace'))
     if not options['SCRIPT_DIR']:
         options['SCRIPT_DIR'] = os.path.abspath(os.path.join(options['BASE_DIR'], os.pardir, os.pardir, 'r_scripts'))
+    options['CREDENTIAL_FILE'] = os.path.abspath(os.path.join(options['BASE_DIR'], os.pardir, os.pardir, options['CREDENTIAL_FILE']))
     options['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     options['DATABASE_CONNECT_OPTIONS'] = {}
     options['THREADS_PER_PAGE'] = 10

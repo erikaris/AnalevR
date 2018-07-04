@@ -17,7 +17,6 @@ class Home(Blueprint):
                            static_url_path='/static/home')
 
         def send_email(to, user_id, domain='http://localhost:8080'):
-            from __future__ import print_function
             import base64
             from email.mime.text import MIMEText
             from googleapiclient.discovery import build
@@ -26,14 +25,14 @@ class Home(Blueprint):
 
             # Setup the Gmail API
             SCOPES = 'https://www.googleapis.com/auth/gmail.compose'
-            store = file.Storage('gmail_credential_compose.json')
+            store = file.Storage(common.options['CREDENTIAL_FILE'])
             creds = store.get()
             service = build('gmail', 'v1', http=creds.authorize(Http()))
 
             email = to
             msg = '''\
-            Thank you for registering AnalevR. Please activate your account by follow this link
-            {}/activate/id/{}'''.format(domain, user_id)
+Thank you for registering AnalevR. Please activate your account by follow this link
+{}/activate/id/{}'''.format(domain, user_id)
 
             message = MIMEText(msg)
             message['to'] = to
