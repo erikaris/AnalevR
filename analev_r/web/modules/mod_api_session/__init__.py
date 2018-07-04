@@ -269,8 +269,12 @@ class APISession(Blueprint):
 
                     subprocess.call(['7z', 'x', '-pP4$$W0rd', '-o' + od, '-aoa', '-y', of])
 
-                return Response(success=True, message='Session having id = "{}" is uploaded'.format(id),
+                    return Response(success=True, message='Session having id = "{}" is uploaded'.format(id),
                                 status=200, mimetype='application/json')
+
+                else:
+                    raise Exception('No file is uploaded')
+
             except Exception as e:
                 return Response(success=False, message=str(e), status=200,
                                 mimetype='application/json')

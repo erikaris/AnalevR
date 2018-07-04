@@ -15,6 +15,9 @@ RUN pip3 install -r /opt/analev-r/requirements.txt --no-cache-dir
 RUN apt-get update -y && apt-get install -y libxml2-dev && rm -r /var/lib/apt
 RUN Rscript -e 'install.packages(c("rzmq", "jsonlite", "xtable", "base64enc", "xlsx", "XML", "plyr", "foreign", "ggplot2"), repos="http://cran.r-project.org")'
 
+# Install 7z
+RUN apt-get update -y && apt-get install -y p7zip-full && rm -r /var/lib/apt
+
 # Add project to /opt
 ADD . /opt/analev-r
 RUN chmod -R +x /opt/analev-r/bin
