@@ -75,6 +75,8 @@
 
         $logo.attr('src', context_url + '/static/images/analev-r.png');
         $loading_indicator.css('background', 'url(' + context_url + '/static/images/loading.gif)');
+
+        location.href = context_url + '{{ next_path }}';
     </script>
 </body>
 </html>

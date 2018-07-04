@@ -67,7 +67,6 @@ Thank you for registering AnalevR. Please activate your account by follow this l
                 session['firstname'] = firstname
                 session['lastname'] = lastname
                 session['email'] = email
-                return render_template('post_register.html', request_path=request.path)
 
             session['page'] = None
             session['firstname'] = None
@@ -84,8 +83,7 @@ Thank you for registering AnalevR. Please activate your account by follow this l
             common.db.session.commit()
 
             send_email(email, user.id, 'https://simpeg.bps.go.id/analev-r')
-
-            return redirect(common.options['BASE_URL'] + '/', code=302)
+            return render_template('post_register.html', request_path=request.path, next_path='/')
 
         @self.route('/login', methods=['GET'])
         def home_login_get():
