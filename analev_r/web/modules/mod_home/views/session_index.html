@@ -232,6 +232,17 @@
         }
 
         /* Data selector */
+        .data-item td:first-child {
+            border-top: 1px solid black;
+        }
+        .data-item td {
+            border-bottom: 1px solid black;
+            padding: 5px 0;
+        }
+        .data-item td:hover {
+            background: #e2e2e2;
+        }
+
         .ls-data {
             list-style: none;
             padding-left: 0px;
@@ -356,7 +367,7 @@
         <div class="modal-dialog">
             <div class="login-modal-container">
                 <div style="text-align: center; margin-bottom: 20px;">
-                    <img src="/static/images/analev-r.png" style="width:80px" />
+                    <img class="logo" src="/static/images/analev-r.png" style="width:80px" />
                 </div>
 
                 <div class="table-responsive">
@@ -860,7 +871,7 @@
                                             }
                                         }
 
-                                        $.post(context_url + '/api/session/eval/{{ session.id }}', {
+                                        $.post(context_url + '/api/session/eval/{{ session.id }}/return/0', {
                                             'user_id': '{{ user.id }}',
                                             'cmd': 'df' + idx + ' <- ' + data.r_handler.replace('?', '"' + data.original_filename + '"'),
                                             // 'cmd': 'df' + idx + ' <- read.spss(data.path("' + data.original_filename + '"), to.data.frame=TRUE)'
@@ -1035,7 +1046,7 @@
                                             $par = $par.find('.output-wrapper .output-plain')
                                                 .show();
                                             $par.find('.CodeMirror').remove();
-                                            $par.find('textarea').val(resp.data.text).codemirror({
+                                            $par.find('textarea').val(resp.message).codemirror({
                                                 'mode': 'r',
                                                 'lineNumbers': true,
                                                 'indentUnit': 2,
@@ -1135,7 +1146,7 @@
                             bootbox.confirm('Are you sure to remove cell "' + title + '"?', function(yes) {
                                 if (yes) {
                                     $par = $par.parents().filter(function() {
-                                        if($(this).hasClass('box')) return true;
+                                        if($(this).hasClass('cell')) return true;
                                         return false;
                                     });
 

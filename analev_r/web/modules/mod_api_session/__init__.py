@@ -149,81 +149,88 @@ class APISession(Blueprint):
 
             return Response(success=True, message='Session label is updated', status=200, mimetype='application/json')
 
-        def session_eval(id):
-            with common.get_lock(id):
-                pass
+        def _session_eval(id, has_return=True):
+            user_id = request.form.get('user_id', '')
+            cmd = request.form.get('cmd', '')
+            session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
 
-        @self.route('/eval/<id>/', methods=['POST'])
-        @self.route('/eval/<id>', methods=['POST'])
-        def api_session_eval(id):
-            try:
-                user_id = request.form.get('user_id', '')
-                cmd = request.form.get('cmd', '')
-                session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
+            common.get_semaphore(id).acquire()
 
-                common.get_semaphore(id).acquire()
+            # Quit processor
+            if 'quit(' in cmd or 'q(' in cmd:
+                pid = common.port_pid_map[session.port]
+                os.killpg(os.getpgid(pid), signal.SIGTERM)
+                # os.kill(pid, signal.SIGTERM)
 
-                # Quit processor
-                if 'quit(' in cmd or 'q(' in cmd:
-                    pid = common.port_pid_map[session.port]
-                    os.killpg(os.getpgid(pid), signal.SIGTERM)
-                    # os.kill(pid, signal.SIGTERM)
+                pid.terminate()
+                pid.kill()
 
-                    pid.terminate()
-                    pid.kill()
-
-                    return Response(success=True, data={
-                        'text': 'Shutting down...', 'type': 'plain', 'time': '0'
-                    }, message='', status=200, mimetype='application/json')
-
-                # Setup receiver
-                cb_port = common.random_port()
-                cb_ctx = zmq.Context()
-                cb_sock = cb_ctx.socket(zmq.REP)
-                cb_sock.bind("tcp://*:{}".format(cb_port))
-
-                # Send message
-                while True:
-                    ctx = zmq.Context()
-                    sock = ctx.socket(zmq.REQ)
-                    sock.connect("tcp://localhost:{}".format(session.port))
-
-                    poller = zmq.Poller()
-                    poller.register(sock, zmq.POLLIN)
-
-                    sock.send_json({'cmd': cmd, 'callback': "tcp://localhost:{}".format(cb_port)})
-
-                    socks = dict(poller.poll(1000))
-                    if socks:
-                        if socks.get(sock) == zmq.POLLIN:
-                            ctx.destroy()
-                            break
-
-                    # Maybe died --> restart
-                    success, msg = start_session(id)
-                    if success:
-                        print('Session is started')
-
-                # Wait for reply
-                resp = cb_sock.recv_string()
-                cb_ctx.destroy()
-                common.get_semaphore(id).release()
-
-                resp = json.loads(resp)
-
-                success = False if resp['error'][0] == 1 else True
-                type = resp['data']['type'][0]
-                text = resp['data']['text'][0]
-                time = resp['data']['time'][0]
-                ut, st, et, _, _ = time.split(', ')
-                time = {'user': ut, 'system': st, 'elapsed': et}
-
-                if not success:
-                    text = text.replace('Error in eval(expr, envir, enclos):', '').strip()
-
-                return Response(success=success, data={
-                    'text': text, 'type': type, 'time': time
+                return Response(success=True, data={
+                    'text': 'Shutting down...', 'type': 'plain', 'time': '0'
                 }, message='', status=200, mimetype='application/json')
+
+            # Setup receiver
+            cb_port = common.random_port()
+            cb_ctx = zmq.Context()
+            cb_sock = cb_ctx.socket(zmq.REP)
+            cb_sock.bind("tcp://*:{}".format(cb_port))
+
+            # Send message
+            while True:
+                ctx = zmq.Context()
+                sock = ctx.socket(zmq.REQ)
+                sock.connect("tcp://localhost:{}".format(session.port))
+
+                poller = zmq.Poller()
+                poller.register(sock, zmq.POLLIN)
+
+                sock.send_json({'cmd': cmd, 'callback': "tcp://localhost:{}".format(cb_port)})
+
+                socks = dict(poller.poll(1000))
+                if socks:
+                    if socks.get(sock) == zmq.POLLIN:
+                        ctx.destroy()
+                        break
+
+                # Maybe died --> restart
+                success, msg = start_session(id)
+                if success:
+                    print('Session is started')
+
+            # Wait for reply
+            resp = cb_sock.recv_string()
+            cb_ctx.destroy()
+            common.get_semaphore(id).release()
+
+            resp = json.loads(resp)
+
+            success = False if resp['error'][0] == 1 else True
+            type = resp['data']['type'][0]
+            text = resp['data']['text'][0]
+            time = resp['data']['time'][0]
+            ut, st, et, _, _ = time.split(', ')
+            time = {'user': ut, 'system': st, 'elapsed': et}
+
+            if not success:
+                text = text.replace('Error in eval(expr, envir, enclos):', '').strip()
+
+            if has_return:
+                return success, {
+                    'text': text, 'type': type, 'time': time
+                }
+            else:
+                return success, {}
+
+        @self.route('/eval/<id>/', defaults={'has_return': 1}, methods=['POST'])
+        @self.route('/eval/<id>', defaults={'has_return': 1}, methods=['POST'])
+        @self.route('/eval/<id>/return/<int:has_return>/', methods=['POST'])
+        @self.route('/eval/<id>/return/<int:has_return>', methods=['POST'])
+        def api_session_eval(id, has_return):
+            has_return = bool(has_return)
+
+            try:
+                success, data = _session_eval(id, has_return)
+                return Response(success=success, data=data, message='OK', status=200, mimetype='application/json')
             except Exception as e:
                 return Response(success=False, message=str(e), status=200,
                                 mimetype='application/json')

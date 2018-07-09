@@ -29,7 +29,10 @@ process.response <- function(resp) {
 
     else {
         dtype <- 'plain'
-        dresp <- toString(resp)
+        # dresp <- toString(resp)
+
+        out <- capture.output(resp)
+        dresp <- paste(out, collapse = '\n')
     }
 
     # eval(parse(text='if(file.exists("tmp.png")) { b64i <- base64enc::base64encode(readBin("tmp.png", "raw", file.info("tmp.png")[1, "size"]), "txt"); unlink("tmp.png"); }'));
