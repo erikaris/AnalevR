@@ -96,7 +96,10 @@ class APISession(Blueprint):
 
                     proc = subprocess.Popen(['Rscript',
                                              os.path.join(common.options['SCRIPT_DIR'], 'r-session.R'),
-                                             '{}'.format(port), session.id,
+                                             '{}'.format(port),
+                                             session.id,
+                                             common.options['WORKSPACE_DIR'],
+                                             'session.Rdata'
                                              "tcp://localhost:{}".format(common.heartbeat_port)],
                                             preexec_fn=os.setsid)
                     common.port_pid_map[port] = proc

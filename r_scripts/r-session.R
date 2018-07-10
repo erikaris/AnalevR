@@ -1,18 +1,20 @@
 args <- commandArgs(trailingOnly=TRUE)
-if (length(args)<3) {
+if (length(args)<5) {
   stop("1st argument as \'port\', 2nd argument as \'session id\' must be supplied.", call.=FALSE)
 }
 
-script.dir <- function(fname){
-    args.local <- commandArgs(trailingOnly = F)
-    return(normalizePath(dirname(sub("^--file=", "", args.local[grep("^--file=", args.local)]))))
-}
+# script.dir <- function(fname){
+#     args.local <- commandArgs(trailingOnly = F)
+#     return(normalizePath(dirname(sub("^--file=", "", args.local[grep("^--file=", args.local)]))))
+# }
 
 session.port <- args[1]
 session.id <- args[2]
-broker.uri <- args[3]
-session.workspace <- paste(script.dir(), '/../r_workspace/', session.id, sep='')
-session.filename <- paste('session.Rdata', sep='')
+session.workspace.basepath <- args[3]
+session.filename <- args[4]
+broker.uri <- args[5]
+session.workspace <- paste(session.workspace.basepath, session.id, sep='')
+# session.filename <- paste('session.Rdata', sep='')
 
 # SET WORKSPACE
 if (!dir.exists(session.workspace)) {
