@@ -33,6 +33,8 @@ if (file.exists(session.filename.fullpath)) {
 
     # Sometimes after restoring session, the variable is changed
     # So, reassign variables from cmd args
+    args <- commandArgs(trailingOnly=TRUE)
+
     session.port <- args[1]
     session.id <- args[2]
     session.workspace.dir <- args[3]
