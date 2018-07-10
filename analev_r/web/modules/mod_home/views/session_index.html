@@ -877,7 +877,7 @@
 
                                         $.post(context_url + '/api/session/eval/{{ session.id }}/return/0', {
                                             'user_id': '{{ user.id }}',
-                                            'cmd': 'df' + idx + ' <- ' + data.r_handler.replace('?', '"' + data.original_filename + '"'); + '\n' +
+                                            'cmd': 'df' + idx + ' <- ' + data.r_handler.replace('?', '"' + data.original_filename + '"') + ';\n' +
                                                    'head(df' + idx + ')',
                                         }, function (resp2) {
                                             if (resp2.success) {
