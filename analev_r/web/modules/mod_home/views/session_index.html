@@ -877,8 +877,8 @@
 
                                         $.post(context_url + '/api/session/eval/{{ session.id }}/return/0', {
                                             'user_id': '{{ user.id }}',
-                                            'cmd': 'df' + idx + ' <- ' + data.r_handler.replace('?', '"' + data.original_filename + '"'),
-                                            // 'cmd': 'df' + idx + ' <- read.spss(data.path("' + data.original_filename + '"), to.data.frame=TRUE)'
+                                            'cmd': 'df' + idx + ' <- ' + data.r_handler.replace('?', '"' + data.original_filename + '"'); + '\n' +
+                                                   'head(df' + idx + ')',
                                         }, function (resp2) {
                                             if (resp2.success) {
                                                 $('<li class="data" var-index="' + idx + '">' +
