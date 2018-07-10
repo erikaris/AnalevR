@@ -252,9 +252,9 @@ class APISession(Blueprint):
                 if session:
                     r_nb = os.path.join(common.options['WORKSPACE_DIR'], session.id, 'notebook.json')
                     try:
-                        os.makedirs(os.path.pardir(r_nb))
+                        os.makedirs(os.path.join(r_nb, os.pardir))
                     except OSError as exc:
-                        if exc.errno == errno.EEXIST and os.path.isdir(os.path.pardir(r_nb)):
+                        if exc.errno == errno.EEXIST and os.path.isdir(os.path.join(r_nb, os.pardir)):
                             pass
                         else:
                             raise
