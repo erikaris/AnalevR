@@ -101,7 +101,7 @@ class FlaskApp(Flask):
 
     def run_server(self):
         self.run(host=self.config['HOST'], port=int(self.config['PORT']), debug=self.config['DEBUG'],
-                 threaded=True, use_reloader=False)
+                 threaded=True, use_reloader=False, ssl_context='adhoc')
 
 
 def main():

@@ -7,6 +7,7 @@ from werkzeug.utils import redirect
 
 from analev_r import common
 from analev_r.models.user import SessionModel, UserModel
+from analev_r.web import Response
 
 
 class Home(Blueprint):
@@ -82,7 +83,7 @@ Thank you for registering AnalevR. Please activate your account by follow this l
             common.db.session.add(user)
             common.db.session.commit()
 
-            send_email(email, user.id, 'https://simpeg.bps.go.id/analev-r')
+            send_email(email, user.id, common.options['BASE_URL'])
             return render_template('post_register.html', request_path=request.path, next_path='/')
 
         @self.route('/login', methods=['GET'])
@@ -172,7 +173,20 @@ Thank you for registering AnalevR. Please activate your account by follow this l
             session['error'] = None
             user = UserModel.query.filter(UserModel.email == email).first()
 
-            send_email(email, user.id, 'https://simpeg.bps.go.id/analev-r')
+            send_email(email, user.id, common.options['BASE_URL'])
 
             session['error'] = 'Activation email has been sent. Please follow the link attached in the email to activate.'
             return render_template('post_resend_link.html', request_path=request.path, next_path='/')
+
+        @self.route('/base_url/', methods=['POST'])
+        @self.route('/base_url', methods=['POST'])
+        def api_session_delete():
+            try:
+                base_url = request.form.get('base_url', '')
+                common.options['BASE_URL'] = base_url
+
+                return Response(success=True, message='Base URL is set',
+                                status=200, mimetype='application/json')
+            except Exception as e:
+                return Response(success=False, message=str(e), status=200,
+                                mimetype='application/json')

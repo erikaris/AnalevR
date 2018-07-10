@@ -604,6 +604,10 @@
             context_url = context_url.substring(0, context_url.length-1);
         }
 
+        $.post(context_url + '/base_url/', {
+            'base_url': context_url
+        }, function(resp) {});
+
         $logo.attr('src', context_url + '/static/images/analev-r.png');
         $loading_indicator.css('background', 'url(' + context_url + '/static/images/loading.gif)');
 
