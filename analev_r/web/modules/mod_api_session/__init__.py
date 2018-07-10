@@ -94,15 +94,20 @@ class APISession(Blueprint):
                     sock = ctx.socket(zmq.REP)
                     sock.bind("tcp://*:{}".format(common.heartbeat_port))
 
-                    proc = subprocess.Popen(['Rscript',
-                                             os.path.join(common.options['SCRIPT_DIR'], 'r-session.R'),
-                                             '{}'.format(port),
-                                             session.id,
-                                             common.options['WORKSPACE_DIR'],
-                                             common.options['SCRIPT_DIR'],
-                                             'session.Rdata'
-                                             "tcp://localhost:{}".format(common.heartbeat_port)],
-                                            preexec_fn=os.setsid)
+                    cmd = [
+                        'Rscript',
+                         os.path.join(common.options['SCRIPT_DIR'], 'r-session.R'),
+                         str(port),
+                         session.id,
+                         common.options['WORKSPACE_DIR'],
+                         common.options['SCRIPT_DIR'],
+                         'session.Rdata'
+                         "tcp://localhost:{}".format(common.heartbeat_port)
+                    ]
+
+                    print('Execute "{}"'.format(' '.join(cmd)))
+
+                    proc = subprocess.Popen(cmd, preexec_fn=os.setsid)
                     common.port_pid_map[port] = proc
                     # print(proc.pid)
 
