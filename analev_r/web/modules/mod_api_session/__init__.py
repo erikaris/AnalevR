@@ -99,6 +99,7 @@ class APISession(Blueprint):
                                              '{}'.format(port),
                                              session.id,
                                              common.options['WORKSPACE_DIR'],
+                                             common.options['SCRIPT_DIR'],
                                              'session.Rdata'
                                              "tcp://localhost:{}".format(common.heartbeat_port)],
                                             preexec_fn=os.setsid)

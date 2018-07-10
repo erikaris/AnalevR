@@ -1,19 +1,20 @@
 args <- commandArgs(trailingOnly=TRUE)
-if (length(args)<5) {
+if (length(args)<6) {
   stop("1st argument as \'port\', 2nd argument as \'session id\' must be supplied.", call.=FALSE)
 }
 
-# script.dir <- function(fname){
+# session.script.dir <- function(fname){
 #     args.local <- commandArgs(trailingOnly = F)
 #     return(normalizePath(dirname(sub("^--file=", "", args.local[grep("^--file=", args.local)]))))
 # }
 
 session.port <- args[1]
 session.id <- args[2]
-session.workspace.basepath <- args[3]
-session.filename <- args[4]
-broker.uri <- args[5]
-session.workspace <- paste(session.workspace.basepath, session.id, sep='')
+session.workspace.dir <- args[3]
+session.script.dir <- args[4]
+session.filename <- args[5]
+broker.uri <- args[6]
+session.workspace <- paste(session.workspace.dir, session.id, sep='')
 # session.filename <- paste('session.Rdata', sep='')
 
 # SET WORKSPACE
@@ -32,20 +33,22 @@ if (file.exists(session.filename)) {
 
     # Sometimes after restoring session, the variable is changed
     # So, reassign variables from cmd args
-    args <- commandArgs(trailingOnly=TRUE)
     session.port <- args[1]
     session.id <- args[2]
-    broker.uri <- args[3]
+    session.workspace.dir <- args[3]
+    session.script.dir <- args[4]
+    session.filename <- args[5]
+    broker.uri <- args[6]
 
     cat('[', session.port, ']', 'Session', session.filename, 'is restored\n')
 }
 
 # Load core module
-source(paste(script.dir(), '/r-processor.R', sep=''))
+source(paste(session.script.dir, '/r-processor.R', sep=''))
 
 # Load all available modules (*.R)
-file.sources = list.files(c(paste(script.dir(), '/modules', sep='')), pattern="*.R$", full.names=TRUE, ignore.case=TRUE)
-print(paste(script.dir(), '/modules', sep=''))
+file.sources = list.files(c(paste(session.script.dir, '/modules', sep='')), pattern="*.R$", full.names=TRUE, ignore.case=TRUE)
+print(paste(session.script.dir, '/modules', sep=''))
 sapply(file.sources,source,.GlobalEnv)
 
 # STARTING SERVER ....
