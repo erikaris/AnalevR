@@ -215,11 +215,16 @@ class APISession(Blueprint):
                 text = text.replace('Error in eval(expr, envir, enclos):', '').strip()
 
             if has_return:
-                return success, {
-                    'text': text, 'type': type, 'time': time
-                }
+                if success:
+                    return success, {
+                            'text': text, 'type': type, 'time': time
+                        }, "OK"
+                else:
+                    return success, {
+                        'text': text, 'type': type, 'time': time
+                    }, text
             else:
-                return success, {}
+                return success, {}, "OK"
 
         @self.route('/eval/<id>/', defaults={'has_return': 1}, methods=['POST'])
         @self.route('/eval/<id>', defaults={'has_return': 1}, methods=['POST'])
@@ -229,8 +234,8 @@ class APISession(Blueprint):
             has_return = bool(has_return)
 
             try:
-                success, data = _session_eval(id, has_return)
-                return Response(success=success, data=data, message='OK', status=200, mimetype='application/json')
+                success, data, message = _session_eval(id, has_return)
+                return Response(success=success, data=data, message=message, status=200, mimetype='application/json')
             except Exception as e:
                 return Response(success=False, message=str(e), status=200,
                                 mimetype='application/json')
