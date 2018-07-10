@@ -250,11 +250,12 @@ class APISession(Blueprint):
 
                 session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
                 if session:
-                    r_nb = os.path.join(common.options['WORKSPACE_DIR'], session.id, 'notebook.json')
+                    r_nb_dir = os.path.join(common.options['WORKSPACE_DIR'], session.id)
+                    r_nb = os.path.join(r_nb_dir, 'notebook.json')
                     try:
-                        os.makedirs(os.path.join(r_nb, os.pardir))
+                        os.makedirs(r_nb_dir)
                     except OSError as exc:
-                        if exc.errno == errno.EEXIST and os.path.isdir(os.path.join(r_nb, os.pardir)):
+                        if exc.errno == errno.EEXIST and os.path.isdir(r_nb_dir):
                             pass
                         else:
                             raise
