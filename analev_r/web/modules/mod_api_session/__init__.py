@@ -4,6 +4,7 @@ import signal
 import subprocess
 from threading import Thread
 
+import errno
 import zmq
 from flask import Blueprint, request, send_file
 from werkzeug.utils import secure_filename
@@ -250,6 +251,14 @@ class APISession(Blueprint):
                 session = SessionModel.query.filter(SessionModel.id == id, SessionModel.user_id == user_id).first()
                 if session:
                     r_nb = os.path.join(common.options['WORKSPACE_DIR'], session.id, 'notebook.json')
+                    try:
+                        os.makedirs(os.path.pardir(r_nb))
+                    except OSError as exc:
+                        if exc.errno == errno.EEXIST and os.path.isdir(os.path.pardir(r_nb)):
+                            pass
+                        else:
+                            raise
+
                     with open(r_nb, 'wb') as f:
                         f.write(content.encode('utf-8'))
                         f.flush()
