@@ -139,7 +139,7 @@ while(running) {
         resp <<- e
     })
 
-    r <- list('data'=process.response(resp), 'error'=err_code)
+    r <- list('data'=process.response(resp, err_code), 'error'=err_code)
 
     # Send response to broker
     # send.raw.string(session.socket.out, toJSON(r))

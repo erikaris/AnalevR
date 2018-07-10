@@ -4,7 +4,7 @@ process.dataframe <- function(resp) {
     return(str.table)
 }
 
-process.response <- function(resp) {
+process.response <- function(resp, err_code) {
     library(jsonlite)
 
     # dtype <- typeof(resp)
@@ -15,7 +15,7 @@ process.response <- function(resp) {
         dresp <- process.dataframe(resp)
     }
 
-    else if(file.exists("tmp.png")) {
+    else if(file.exists("tmp.png") && err_code == 0) {
         b64i <- base64enc::base64encode(readBin("tmp.png", "raw", file.info("tmp.png")[1, "size"]), "txt")
         unlink("tmp.png")
         dtype <- 'image'
