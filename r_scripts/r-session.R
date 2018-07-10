@@ -14,8 +14,8 @@ session.workspace.dir <- args[3]
 session.script.dir <- args[4]
 session.filename <- args[5]
 broker.uri <- args[6]
-session.workspace <- paste(session.workspace.dir, session.id, sep='')
-# session.filename <- paste('session.Rdata', sep='')
+session.workspace <- paste(session.workspace.dir, session.id, sep='/')
+session.filename.fullpath <- paste(session.workspace, session.filename, sep='/')
 
 # SET WORKSPACE
 if (!dir.exists(session.workspace)) {
@@ -27,9 +27,9 @@ if (!dir.exists(session.workspace)) {
 
 # RESTORING SESSION
 setwd(session.workspace)
-if (file.exists(session.filename)) {
-    cat('[', session.port, ']', 'Restoring session', session.filename, '\n')
-    load(file=session.filename)
+if (file.exists(session.filename.fullpath)) {
+    cat('[', session.port, ']', 'Restoring session', session.filename.fullpath, '\n')
+    load(file=session.filename.fullpath)
 
     # Sometimes after restoring session, the variable is changed
     # So, reassign variables from cmd args
@@ -39,16 +39,18 @@ if (file.exists(session.filename)) {
     session.script.dir <- args[4]
     session.filename <- args[5]
     broker.uri <- args[6]
+    session.workspace <- paste(session.workspace.dir, session.id, sep='/')
+    session.filename.fullpath <- paste(session.workspace, session.filename, sep='/')
 
-    cat('[', session.port, ']', 'Session', session.filename, 'is restored\n')
+    cat('[', session.port, ']', 'Session', session.filename.fullpath, 'is restored\n')
 }
 
 # Load core module
-source(paste(session.script.dir, '/r-processor.R', sep=''))
+source(paste(session.script.dir, 'r-processor.R', sep='/'))
 
 # Load all available modules (*.R)
-file.sources = list.files(c(paste(session.script.dir, '/modules', sep='')), pattern="*.R$", full.names=TRUE, ignore.case=TRUE)
-print(paste(session.script.dir, '/modules', sep=''))
+file.sources = list.files(c(paste(session.script.dir, 'modules', sep='/')), pattern="*.R$", full.names=TRUE, ignore.case=TRUE)
+print(paste(session.script.dir, 'modules', sep='/'))
 sapply(file.sources,source,.GlobalEnv)
 
 # STARTING SERVER ....
@@ -148,5 +150,5 @@ while(running) {
     }
 
     # Save session for next purpose
-    save.image(file=session.filename)
+    save.image(file=session.filename.fullpath)
 }
