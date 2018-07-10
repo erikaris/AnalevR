@@ -56,6 +56,7 @@ sapply(file.sources,source,.GlobalEnv)
 # STARTING SERVER ....
 library(rzmq)
 library(jsonlite)
+library(openxlsx)
 library(XML)
 library(plyr)
 library(foreign)
