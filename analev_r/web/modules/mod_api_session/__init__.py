@@ -101,7 +101,7 @@ class APISession(Blueprint):
                          session.id,
                          common.options['WORKSPACE_DIR'],
                          common.options['SCRIPT_DIR'],
-                         'session.Rdata'
+                         'session.Rdata',
                          "tcp://localhost:{}".format(common.heartbeat_port)
                     ]
 
