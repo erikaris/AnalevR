@@ -1,11 +1,27 @@
 version: '2'
 
 services:
-  mysql-server:
-    image: mysql:5.7
+  redis:
+    image: redis:4-alpine
+    ports:
+      - "6379:6379"
+
+  webdis:
+    image: anapsix/webdis:latest
+    depends_on:
+      - redis
+    links:
+      - redis:redis
+    ports:
+      - "7379:7379"
+
+  mysql:
+    image: mariadb:5.5.61-trusty
     environment:
       - MYSQL_ROOT_PASSWORD=toor
-      - MYSQL_DATABASE=analev_r
+      - MySQL_USER=analev
+      - MySQL_PASSWORD=velana
+      - MYSQL_DATABASE=analev
     ports:
       - "3316:3306"
 
@@ -16,30 +32,67 @@ services:
       - PMA_USER=root
       - PMA_PASSWORD=toor
     depends_on:
-        - mysql-server
+        - mysql
     links:
-      - mysql-server:db
+      - mysql:db
     ports:
-      - "8881:80"
+      - "8889:80"
 
-  analev-r:
-    build: .
+  php:
+    image: ulsmith/alpine-apache-php7
     depends_on:
-      - mysql-server
+      - webdis
+      - mysql    
     links:
-      - mysql-server:mysql-server
+      - webdis:webdis
+      - mysql:db
+    volumes:
+      - ./html:/app/public
     ports:
-      - "8880:8080"
-    command: "python3 /opt/analev-r/bin/analev-r-server -D mysql+pymysql://root:toor@mysql-server/analev_r -W /opt/analev-r/r_workspace -C /opt/analev-r/gmail_credential_compose.json"
-#
-#  analev-r-proxy:
-#    build: php_proxy
-#    volumes:
-#      - ./php_proxy:/var/www/html
-#    depends_on:
-#      - analev-r
-#    links:
-#      - analev-r:analev
-#    ports:
-#      - "8882:80"
-#    command: apache2-foreground
+      - "8888:80"
+
+  worker:
+    build: docker_r
+    depends_on:
+      - redis
+      - mysql
+    links:
+      - redis:redis
+      - mysql:db
+    volumes:
+      - ./worker:/app
+      - ./module:/module
+      - /media/soedomoto/DATA/PROJECT/2018-analevR/data:/data
+      - ./workspace:/workspace
+    environment:
+      - AUTOKILL_AFTER_ITERATION=20
+      - MAX_WORKER=10
+      - APP_DIR=/app
+      - WORKSPACE_DIR=/workspace
+      - DATA_DIR=/data
+      - REDIS_HOST=redis
+      - MySQL_USER=root
+      - MySQL_PASSWORD=toor
+      - MYSQL_DATABASE=analev
+      - MYSQL_HOST=db
+    pid: "host"
+    command: "Rscript /app/manager.R"
+
+  logger:
+    build: docker_r
+    depends_on:
+      - redis
+    links:
+      - redis:redis
+    volumes:
+      - ./worker:/app
+      - ./module:/module
+      - /media/soedomoto/DATA/PROJECT/2018-analevR/data:/data
+      - ./workspace:/workspace
+    environment:
+      - APP_DIR=/app
+      - WORKSPACE_DIR=/workspace
+      - DATA_DIR=/data
+      - REDIS_HOST=redis
+    pid: "host"
+    command: "Rscript /app/logger.R"
