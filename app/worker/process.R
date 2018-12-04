@@ -1,15 +1,15 @@
-library(redux)
-library(processx)
-
 app.dir <- Sys.getenv('APP_DIR', '/app')
-source(normalizePath(file.path(app.dir, 'util.R')))
-
-conn <- redux::hiredis()
+app.dir <- normalizePath(app.dir)
 max.worker <- as.integer(Sys.getenv('MAX_WORKER', 10))
 
+library(redux)
+library(processx)
+source(file.path(app.dir, 'util.R'))
+
+conn <- redux::hiredis()
+
 while(1) {
-	n.worker <- conn$LLEN("worker.pids")
-	n.worker <- as.integer(n.worker)
+	n.worker <- as.integer(conn$LLEN("worker.pids"))
 	if (n.worker > 0) {
 		alive.worker.pids <- c()
 
@@ -25,10 +25,13 @@ while(1) {
 		}
 
 		for (pid in alive.worker.pids) conn$LPUSH("worker.pids", pid)
-	} else {
-		workers.tobe.spawned <- max.worker - n.worker
+		n.worker <- as.integer(conn$LLEN("worker.pids"))
+	}
+
+	workers.tobe.spawned <- max.worker - n.worker
+	if (workers.tobe.spawned > 0) {
 		for (i in 1:workers.tobe.spawned) {
-			process$new(Rscript_binary(), c(normalizePath(file.path(app.dir, 'worker.R'))))
+			process$new(Rscript_binary(), c(file.path(app.dir, 'worker.R')))
 		}
 	}
 

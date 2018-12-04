@@ -29,9 +29,9 @@ process.response <- function(resp, err_code) {
         dresp <- process.dataframe.to.csv(resp)
     }
 
-    else if(file.exists("tmp.png") && err_code == 0) {
-        b64i <- base64enc::base64encode(readBin("tmp.png", "raw", file.info("tmp.png")[1, "size"]), "txt")
-        unlink("tmp.png")
+    else if(file.exists(".tmp.png") && err_code == 0) {
+        b64i <- base64enc::base64encode(readBin(".tmp.png", "raw", file.info(".tmp.png")[1, "size"]), "txt")
+        unlink(".tmp.png")
         dtype <- 'image'
         dresp <- b64i
     }

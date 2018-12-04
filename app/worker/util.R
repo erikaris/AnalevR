@@ -16,7 +16,9 @@ Sys_getenv <- function(x, unset = NULL) {
 }
 
 script.name <- function() {
-	return(sub(".*=", "", commandArgs()[6]))
+  file.path <- sub(".*=", "", commandArgs()[4])
+  file.name <- basename(file.path)
+	return(file.name)
 }
 
 mysql.db <- NULL;
@@ -29,7 +31,7 @@ database.mysql <- function() {
         dbname <- Sys_getenv("MYSQL_DATABASE", 'analev')
         host <- Sys_getenv("MYSQL_HOST", '127.0.0.1')
 
-        conn$LPUSH("log", paste("Connecting to MySQL ", host, "/", dbname, " using ", user, ":", password))
+        # conn$LPUSH("log", paste("Connecting to MySQL ", host, "/", dbname, " using ", user, ":", password))
 
         mysql.db <<- dbConnect(MySQL(), user=user, password=password, dbname=dbname, host=host);
     }

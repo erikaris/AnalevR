@@ -1,20 +1,23 @@
+app.dir <- Sys.getenv('APP_DIR', '/app')
+app.dir <- normalizePath(app.dir)
+module.dir <- Sys.getenv('MODULE_DIR', '/module')
+module.dir <- normalizePath(module.dir)
+workspace.dir <- Sys.getenv('WORKSPACE_DIR', '/workspace')
+workspace.dir <- normalizePath(workspace.dir)
+
 library(redux)
 library(jsonlite)
 library(foreign)
 library(readxl)
-
-workspace.dir <- Sys.getenv('WORKSPACE_DIR', '/workspace')
-app.dir <- Sys.getenv('APP_DIR', '/app')
-module.dir <- Sys.getenv('MODULE_DIR', '/module')
-
-source(normalizePath(file.path(app.dir, 'util.R')))
-source(normalizePath(file.path(app.dir, 'converter.R')))
-file.sources = list.files(c(normalizePath(file.path(app.dir, 'rpc_helper'))), pattern="*.R$", full.names=TRUE, ignore.case=TRUE)
+library(readr)
+source(file.path(app.dir, 'util.R'))
+source(file.path(app.dir, 'converter.R'))
+file.sources = list.files(c(file.path(app.dir, 'rpc_helper')), pattern="*.R$", full.names=TRUE, ignore.case=TRUE)
 sapply(file.sources, source, .GlobalEnv)
 
 conn <- redux::hiredis()
-pid <- Sys.getpid()
 
+pid <- Sys.getpid()
 conn$LPUSH("log", paste("New worker spawned with pid", pid))
 conn$LPUSH("worker.pids", pid)
 
@@ -39,13 +42,10 @@ while(1) {
 			}
 
 			session.save <- function(data.json) {
-			    data.file <- normalizePath(file.path(session.dir, 'session.json'))
-			    cat(data.json, file=data.file, sep="\n")
+			    cat(data.json, file=file.path(session.dir, 'session.json'), sep="\n")
 			}
 
 			session.read <- function() {
-			    library(readr)
-			    
 			    data.file <- file.path(session.dir, 'session.json')
 			    if (file.exists(data.file)) {
 			        data.json <- read_file(data.file)
@@ -59,15 +59,11 @@ while(1) {
 
 			session.rdata <- file.path(session.dir, 'session.Rdata')
 			if (file.exists(session.rdata)) {
-			    # load(file=session.rdata)
-			    # setwd(session.dir)
-
 			    e <- new.env()
 				load(file=session.rdata, envir = e)
 				working.env <<- e$working.env
 			}
 
-			# session.pid <- file.path(session.dir, 'pid.pid')
 			working.env$req.sess = req.sess
 			working.env$req.id = req.id
 			working.env$conn = conn
@@ -79,20 +75,19 @@ while(1) {
 	        tryCatch({
 
 	            if (! is.null(req.cmd)) {
-	                conn$LPUSH("log", paste(script.name(), paste0("[", req.sess, "]"), "-", "Executing command..."))
-	                conn$LPUSH("log", capture.output(req.cmd))
+	                conn$LPUSH("log", paste(script.name(), paste0("[", req.sess, "]"), "-", "Executing command", paste(capture.output(req.cmd), sep="")))
 
 	                # eval(parse(text='png(file="tmp.png")'))
 
-	                # if (grepl('ggplot', req.cmd, fixed=TRUE)) {
-	                #     req.cmd <<- paste0(req.cmd, '\n', 'ggsave("tmp.png")')
-	                # }
+	                if (grepl('ggplot', req.cmd, fixed=TRUE)) {
+	                    req.cmd <<- paste0(req.cmd, '\n', 'ggsave(".tmp.png")')
+	                }
 
 	                resp.obj <<- eval(parse(text=req.cmd), envir=working.env)
 
-	                # eval(parse(text='dev.off()'))
+	                # eval(parse(text='dev.off()'), envir=working.env)
 
-	                conn$LPUSH("log", paste(capture.output(resp.obj), collapse = '\n'))
+	                # conn$LPUSH("log", paste(capture.output(resp.obj), collapse = '\n'))
 	                resp.obj <<- process.response(resp.obj, err.code)
 	            }
 
@@ -107,7 +102,7 @@ while(1) {
 	            }
 
 	            # Save session for next purpose
-		        conn$LPUSH("log", paste(paste(ls(envir=working.env), collapse=' '), "->", session.rdata))
+		        conn$LPUSH("log", paste(script.name(), paste0("[", req.sess, "]"), "-", "Saving workspace to", session.rdata))
 		        save(working.env, file = session.rdata)
 		        # save(file=session.rdata, envir = working.env)
 

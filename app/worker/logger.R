@@ -8,6 +8,6 @@ while(1) {
     inp.log <- inp.arr[[2]]
 
     if (! is.null(inp.log)) {
-    	cat(inp.log, '\n')
+    	cat(inp.log, '\n\n')
     }
 }
