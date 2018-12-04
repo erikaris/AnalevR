@@ -51,48 +51,40 @@ services:
     ports:
       - "8888:80"
 
-  # worker:
-  #   build: docker_r
-  #   depends_on:
-  #     - redis
-  #     - mysql
-  #   links:
-  #     - redis:redis
-  #     - mysql:db
-  #   volumes:
-  #     - ./worker:/app
-  #     - ./module:/module
-  #     - /media/soedomoto/DATA/PROJECT/2018-analevR/data:/data
-  #     - ./workspace:/workspace
-  #   environment:
-  #     - AUTOKILL_AFTER_ITERATION=20
-  #     - MAX_WORKER=10
-  #     - APP_DIR=/app
-  #     - WORKSPACE_DIR=/workspace
-  #     - DATA_DIR=/data
-  #     - REDIS_HOST=redis
-  #     - MySQL_USER=root
-  #     - MySQL_PASSWORD=toor
-  #     - MYSQL_DATABASE=analev
-  #     - MYSQL_HOST=db
-  #   pid: "host"
-  #   command: "Rscript /app/manager.R"
+  worker:
+    build: image
+    depends_on:
+      - redis
+      - mysql
+    links:
+      - redis:redis
+      - mysql:db
+    volumes:
+      - ./app/worker:/app
+      - ./storage/module:/module
+      - ./storage/data:/data
+      - ./storage/workspace:/workspace
+    environment:
+      - AUTOKILL_AFTER_ITERATION=20
+      - MAX_WORKER=10
+      - APP_DIR=/app
+      - WORKSPACE_DIR=/workspace
+      - DATA_DIR=/data
+      - REDIS_HOST=redis
+      - MySQL_USER=root
+      - MySQL_PASSWORD=toor
+      - MYSQL_DATABASE=analev
+      - MYSQL_HOST=db
+    pid: "host"
+    command: "Rscript /app/manager.R"
 
-  # logger:
-  #   build: docker_r
-  #   depends_on:
-  #     - redis
-  #   links:
-  #     - redis:redis
-  #   volumes:
-  #     - ./worker:/app
-  #     - ./module:/module
-  #     - /media/soedomoto/DATA/PROJECT/2018-analevR/data:/data
-  #     - ./workspace:/workspace
-  #   environment:
-  #     - APP_DIR=/app
-  #     - WORKSPACE_DIR=/workspace
-  #     - DATA_DIR=/data
-  #     - REDIS_HOST=redis
-  #   pid: "host"
-  #   command: "Rscript /app/logger.R"
+  logger:
+    build: image
+    depends_on:
+      - redis
+    links:
+      - redis:redis
+    environment:
+      - REDIS_HOST=redis
+    pid: "host"
+    command: "Rscript /app/logger.R"
