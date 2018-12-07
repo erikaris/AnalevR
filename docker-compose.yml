@@ -84,7 +84,10 @@ services:
       - redis
     links:
       - redis:redis
+    volumes:
+      - ./app/worker:/app
     environment:
+      - APP_DIR=/app
       - REDIS_HOST=redis
     pid: "host"
     command: "Rscript /app/logger.R"
