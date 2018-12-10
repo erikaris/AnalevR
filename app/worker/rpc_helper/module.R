@@ -54,7 +54,39 @@ module.add <- function(mod.name, mod.label) {
     mod <- dbFetch(rs)
     dbClearResult(rs)
 
-    return(mod)
+    return(as.list(mod))
+}
+
+module.rename <- function(mod.id, mod.name, mod.label) {
+    db <- database.mysql()
+    mod.loc <- file.path(module.dir, mod.id) 
+
+    # Get old module name
+    rs <- dbSendQuery(db, paste0('SELECT name FROM module_model WHERE id = "', mod.id, '"'))
+    rows <- dbFetch(rs, n=1)
+    dbClearResult(rs)
+    mod.name.old <- rows$name[1]
+
+    # Update module
+    dbGetQuery(db, paste0('UPDATE module_model SET name = "', mod.name, '", label = "', mod.label, '" WHERE id = "', mod.id, '"'))
+
+    # Update content
+    rs <- dbSendQuery(db, paste0('SELECT id FROM module_file_model WHERE module_id = "', mod.id, '" AND filename = "ui"'))
+    rows <- dbFetch(rs, n=1)
+    dbClearResult(rs)
+
+    ui.js.id <- rows$id[1]
+    f <- file.path(mod.loc, paste0(ui.js.id, '.js'))
+    x <- readLines(f)
+    y <- gsub(mod.name.old, mod.name, x)
+    cat(y, file=f, sep="\n")
+
+    # Return newly modified module
+    rs <- dbSendQuery(db, paste0('SELECT * FROM module_model WHERE id = "', mod.id, '"'))
+    mod <- dbFetch(rs)
+    dbClearResult(rs)
+
+    return(as.list(mod))
 }
 
 module.remove <- function(mod.id) {
@@ -140,11 +172,23 @@ module.file.id.read <- function(file.id) {
 
     db <- database.mysql()
     rs <- dbSendQuery(db, paste0('SELECT id, module_id, extension FROM module_file_model WHERE id = "', file.id, '"'))
-    row <- dbFetch(rs)
+    rows <- dbFetch(rs, n=1)
     dbClearResult(rs)
 
-    file.loc <- file.path(module.dir, row$module_id, paste0(row$id, '.', row$extension))
-    return(read_file(file.loc))
+    file.loc <- file.path(module.dir, rows$module_id[1], paste0(rows$id[1], '.', rows$extension[1]))
+    return(list('id'=rows$id[1], 'filename'=rows$filename[1], 'extension'=rows$extension[1], 'content'=read_file(file.loc)))
+}
+
+module.file.ui.read <- function(mod.id) {
+    library(readr)
+
+    db <- database.mysql()
+    rs <- dbSendQuery(db, paste0('SELECT id, module_id, filename, extension FROM module_file_model WHERE module_id = "', mod.id, '" AND filename = "ui"'))
+    rows <- dbFetch(rs, n=1)
+    dbClearResult(rs)
+
+    file.loc <- file.path(module.dir, mod.id, paste0(rows$id[1], '.', rows$extension[1]))
+    return(list('id'=rows$id[1], 'filename'=rows$filename[1], 'extension'=rows$extension[1], 'content'=read_file(file.loc)))
 }
 
 module.file.remove <- function(file.id) {
@@ -202,18 +246,6 @@ module.file.name.eval <- function(file.name, format.params) {
     # conn$LPUSH("log", paste(script.name(), paste0("[", req.sess, "]"), "-", paste0("Executing command...\n")))
     conn$LPUSH(paste0("worker-req"), toJSON(list(sess=req.sess, 'id'=req.id, 'cmd'=file.content)))
     return(as.logical(0))
-}
-
-module.file.ui.read <- function(mod.id) {
-    library(readr)
-
-    db <- database.mysql()
-    rs <- dbSendQuery(db, paste0('SELECT id, module_id, filename, extension FROM module_file_model WHERE module_id = "', mod.id, '" AND filename = "ui"'))
-    rows <- dbFetch(rs, n=1)
-    dbClearResult(rs)
-
-    mod.loc <- file.path(module.dir, mod.id, paste0(rows$id[1], '.', rows$extension[1]))
-    return(read_file(mod.loc))
 }
 
 # will be deprecated

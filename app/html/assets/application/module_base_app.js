@@ -3,6 +3,7 @@ window.BaseModule = class extends React.Component {
     super(props);
 
     this.state = {
+      module_info: this.props.module_info, 
       dataset_id: null, 
     };
   }
@@ -11,13 +12,12 @@ window.BaseModule = class extends React.Component {
     return this.props.app;
   }
 
-  datasets() {
-    var selecteds = {};
-    this.app().selected_dataset_ids().forEach((id) => {
-      selecteds[id] = this.app().state.datasets[id];
-    });
+  module_info() {
+    return this.state.module_info;
+  }
 
-    return selecteds;
+  datasets() {
+    return this.app().selected_datasets();
   }
 
   dataset() {

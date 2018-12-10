@@ -41,6 +41,7 @@
 </div>
 
 <script type="text/javascript">
+	// Define new webix UI "Monaco editor"
 	webix.protoUI({
 	    name: "monaco-editor",
 	    defaults: {
@@ -75,6 +76,7 @@
 	        if (!value && value !== 0) value = "";
 	        if (this._editor) {
 	            this._editor.setValue(value);
+	            this._editor.getModel().updateOptions({ tabSize: 2 })
 	            monaco.editor.setModelLanguage(this._editor.getModel(), language);
 	            this._editor.getModel()._resetTokenizationState()
 	        }
@@ -87,13 +89,32 @@
 	    }
 	}, webix.ui.view);
 
-	function add_module(name, label, callback) {
-		analev_call('module.add', [name, label], function(req_id, resp) {
-	        resp = JSON.parse(resp);
-	        if (resp.success) {
-        		if (callback) callback(resp.data);
-	        }
-	    });
+	function add_module(name, label) {
+	    return new Promise((resolve, reject) => {
+	    	analev_call('module.add', [name, label], function(req_id, resp) {
+		        resp = JSON.parse(resp);
+		        if (resp.success) {
+	        		resolve(resp.data);
+		        } else {
+		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		        	reject(resp.message);
+		        }
+		    });
+		});
+	}
+
+	function rename_module(id, name, label) {
+	    return new Promise((resolve, reject) => {
+	    	analev_call('module.rename', [id, name, label], function(req_id, resp) {
+		        resp = JSON.parse(resp);
+		        if (resp.success) {
+	        		resolve(resp.data);
+		        } else {
+		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		        	reject(resp.message);
+		        }
+		    });
+		});
 	}
 
 	function remove_module(id) {
@@ -103,6 +124,21 @@
 		        if (resp.success) {
 	        		resolve(resp.data);
 		        } else {
+		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		        	reject(resp.message);
+		        }
+		    });
+		});
+	}
+
+	function list_module_files(module_id) {
+		return new Promise((resolve, reject) => {
+			analev_call('module.files', [module_id], function(req_id, resp) {
+		        resp = JSON.parse(resp);
+		        if (resp.success) {
+	        		resolve(resp.data);
+		        } else {
+		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
 		        	reject(resp.message);
 		        }
 		    });
@@ -116,6 +152,7 @@
 		        if (resp.success) {
 	        		resolve(resp.data);
 		        } else {
+		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
 		        	reject(resp.message);
 		        }
 		    });
@@ -129,6 +166,23 @@
 		        if (resp.success) {
 	        		resolve(resp.data);
 		        } else {
+		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		        	reject(resp.message);
+		        }
+		    });
+		});
+	}
+
+
+
+	function read_ui_file(module_id) {
+		return new Promise((resolve, reject) => {
+			analev_call('module.file.ui.read', [module_id], function(req_id, resp) {
+		        resp = JSON.parse(resp);
+		        if (resp.success) {
+	        		resolve(resp.data);
+		        } else {
+		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
 		        	reject(resp.message);
 		        }
 		    });
@@ -137,27 +191,15 @@
 
 	function read_file(id) {
 		return new Promise((resolve, reject) => {
-			var req_id = uuid();
-            if (!('fileid_reqid_map' in window)) window.fileid_reqid_map = {};
-            window.fileid_reqid_map[req_id] = id;
-
-			analev_call('module.file.id.read', [id], function(_req_id, resp) {
-	            var resp = JSON.parse(resp);
-	            if (resp.success) {
-	                var file_id = window.fileid_reqid_map[_req_id];
-	                delete window.fileid_reqid_map[_req_id];
-
-	                resolve({
-	                	id: file_id, 
-	                	data: resp.data
-	                });
-	            } else {
-	            	reject({
-	            		id: file_id, 
-	                	data: resp.message
-	            	});
-	            }
-	        }, req_id);
+			analev_call('module.file.id.read', [id], function(req_id, resp) {
+		        resp = JSON.parse(resp);
+		        if (resp.success) {
+	        		resolve(resp.data);
+		        } else {
+		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		        	reject(resp.message);
+		        }
+		    });
 		});
 	}
 
@@ -168,6 +210,7 @@
 		        if (resp.success) {
 	        		resolve(resp.data);
 		        } else {
+		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
 		        	reject(resp.message);
 		        }
 		    });
@@ -284,14 +327,14 @@
 
 	                this.clearAll();
 	                if (tree_item.$level == 1) {
-	                    this.add({ id: 'new_module', name: 'New Module' });
+	                    this.add({ id: 'new_module', value: 'New Module' });
 	                } else if (tree_item.$level == 2) {
-	                    this.add({ id: 'rename_module', name: 'Rename Module' });
-	                    this.add({ id: 'remove_module', name: 'Remove Module' });
-	                    this.add({ id: 'new_r_file', name: 'New R File' });
+	                    this.add({ id: 'rename_module', value: 'Rename Module' });
+	                    this.add({ id: 'remove_module', value: 'Remove Module' });
+	                    this.add({ id: 'new_r_file', value: 'New R File' });
 	                } else if (tree_item.$level == 3 && tree_item.extension == 'R') {
-	                    this.add({ id: 'rename_r_file', name: 'Rename R File' });
-	                    this.add({ id: 'remove_r_file', name: 'Remove R File' });
+	                    this.add({ id: 'rename_r_file', value: 'Rename R File' });
+	                    this.add({ id: 'remove_r_file', value: 'Remove R File' });
 	                }
 	                this.render();
 	            },
@@ -327,8 +370,35 @@
 			                                    	var name = this.getFormView().elements["name"].getValue(), 
 			                                    		label = this.getFormView().elements["label"].getValue();
 
-			                                        add_module(name, label, (data) => {
-			                                        	console.log(data);
+			                                        add_module(name, label).then(d => {
+			                                        	$$('list_modules').data.add({
+										                    id: d.id,
+										                    name: d.name, 
+										                    label: d.label, 
+										                    value: d.label,
+										                    open: true,
+										                }, -1, 'root');
+
+										                // Load file(s) associated with each module
+										                list_module_files(d.id).then(ds => {
+										                	ds.forEach((d) => {
+										                		$$('list_modules').data.add({
+									                                id: d.id,
+									                                value: '{0}.{1}'.format(d.filename, d.extension),
+									                                filename: d.filename,
+									                                extension: d.extension,
+									                            }, -1, d.module_id);
+
+										                		read_file(d.id).then(d => {
+										                			$$('list_modules').updateItem(d.id, {
+								                                        remote_content: d.content,
+								                                        content: d.content
+								                                    });
+										                		});
+										                	});
+
+										                	this.getFormView().getParentView().hide();
+										                });
 			                                        });
 			                                    }
 			                                }
@@ -348,13 +418,50 @@
 	                        body: {
 	                            view: "form",
 	                            elements: [
-	                                { view: "text", name: "name", label: "Name" },
+	                            	{ view: "text", name: "name", label: "Name", value: tree_item.name },
+	                                { view: "text", name: "label", label: "Label", value: tree_item.label },
 	                                {
-	                                    view: "button",
-	                                    label: "Save",
-	                                    click: function() {
-	                                        webix.message(this.getFormView().elements["name"].getValue());
-	                                    }
+	                                	cols: [
+	                                		{
+			                                    view: "button",
+			                                    label: "Cancel",
+			                                    click: function() {
+			                                        this.getFormView().getParentView().hide();
+			                                    }
+			                                }, 
+			                                {
+			                                    view: "button",
+			                                    label: "Save",
+			                                    click: function() {
+			                                    	var name = this.getFormView().elements["name"].getValue(), 
+			                                    		label = this.getFormView().elements["label"].getValue();
+
+			                                        rename_module(tree_item.id, name, label).then(d => {
+			                                        	$$('list_modules').updateItem(d.id, {
+		                                        			name: d.name, 
+										                    label: d.label, 
+										                    value: d.label
+					                                    });
+
+					                                    read_ui_file(d.id).then((d) => {
+							                            	$$('list_modules').updateItem(d.id, {
+							                            		value: '{0}.{1}'.format(d.filename, d.extension),
+								                                filename: d.filename,
+								                                extension: d.extension,
+						                                        remote_content: d.content,
+						                                        content: d.content
+						                                    });
+
+						                                    if (d.id == $$('list_modules').getSelectedId()) {
+						                                    	$$('editor').setValue(d.content, window.ext_lang_map[d.extension.toLowerCase()]);
+						                                    }
+
+						                                    this.getFormView().getParentView().hide();
+							                            });
+			                                        });
+			                                    }
+			                                }
+	                                	]
 	                                }
 	                            ]
 	                        }
@@ -398,6 +505,7 @@
 			                                    label: "Save",
 			                                    click: function() {
 			                                    	var name = this.getFormView().elements["name"].getValue();
+
 			                                    	add_r_file(tree_item.id, name).then((d) => {
 			                                    		$$('list_modules').data.add({
 							                                id: d.id,
@@ -408,8 +516,8 @@
 
 							                            read_file(d.id).then((d) => {
 							                            	$$('list_modules').updateItem(d.id, {
-						                                        remote_content: d.data,
-						                                        content: d.data
+						                                        remote_content: d.content,
+						                                        content: d.content
 						                                    });
 
 						                                    this.getFormView().getParentView().hide();
@@ -433,7 +541,7 @@
 	                        body: {
 	                            view: "form",
 	                            elements: [
-	                                { view: "text", name: "name", label: "Name" },
+	                                { view: "text", name: "name", label: "Name", value: tree_item.filename },
 	                                {
 	                                	cols: [
 	                                		{
@@ -459,13 +567,12 @@
 
 								                            read_file(d.id).then((d) => {
 								                            	$$('list_modules').updateItem(d.id, {
-							                                        remote_content: d.data,
-							                                        content: d.data
+							                                        remote_content: d.content,
+							                                        content: d.content
 							                                    });
 
-							                                    if ($$('list_modules').getSelectedId() == tree_item.id) {
-							                                    	// $$('list_modules').on.onItemClick(tree_item.id);
-							                                    	$$('list_modules').callEvent('onItemClick', [tree_item.id]);
+							                                    if ($$('list_modules').getSelectedId() == d.id) {
+							                                    	$$('list_modules').callEvent('onItemClick', [d.id]);
 							                                    }
 
 							                                    this.getFormView().getParentView().hide();
@@ -504,6 +611,10 @@
 						        if (will_remove) {
 						        	remove_file(tree_item.id).then((id) => {
 						        		$$('list_modules').remove(id);
+
+						        		if (id == $$('list_modules').getSelectedId()) {
+	                                    	$$('editor').setValue('', 'r');
+	                                    }
 						        	});
 						        }
 						    }
@@ -522,6 +633,8 @@
 	            resp.data.forEach(function(d) {
 	                $$('list_modules').data.add({
 	                    id: d.id,
+	                    name: d.name, 
+	                    label: d.label, 
 	                    value: d.label,
 	                    open: true,
 	                }, -1, 'root');

@@ -17,7 +17,7 @@
                             <!-- Title -->
                             <div class="col-lg-8 col-md-8 col-sm-6">
                                 <div class="page-title">
-                                    <h1>Dashboard</h1>
+                                    <h1>Analysis Page</h1>
                                 </div>
                             </div>
 
@@ -26,7 +26,7 @@
                                 <div class="page-title">
                                     <ol class="breadcrumb text-right">
                                         <li><a href="<?php echo base_url() . 'user' ?>">Pengguna</a></li>
-                                        <li class="active">Dashboard</li>
+                                        <li class="active">Analysis Page</li>
                                     </ol>
                                 </div>
                             </div>
@@ -41,11 +41,11 @@
 </div>
 
 <script src="<?php echo assets_url() ?>/application/main_app.js"></script>
-<script src="<?php echo assets_url() ?>/application/data_selector_app.js"></script>
+<!-- <script src="<?php echo assets_url() ?>/application/data_selector_app.js"></script>
 <script src="<?php echo assets_url() ?>/application/data_preview_app.js"></script>
 <script src="<?php echo assets_url() ?>/application/data_visualization_app.js"></script>
 <script src="<?php echo assets_url() ?>/application/module_selector_app.js"></script>
-<script src="<?php echo assets_url() ?>/application/module_open_app.js"></script>
+<script src="<?php echo assets_url() ?>/application/module_open_app.js"></script> -->
 <script src="<?php echo assets_url() ?>/application/module_base_app.js"></script>
 
 <script type="text/javascript">

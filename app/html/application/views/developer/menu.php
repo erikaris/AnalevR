@@ -12,7 +12,7 @@
             <!-- Show on desktop -->
             <ul class="nav navbar-nav hidden-xs">
                 <li><a href="<?php echo base_url() . 'developer' ?>">Home</a></li>
-                <li><a href="<?php echo base_url() ?>">Analyst Page</a></li>
+                <li><a href="<?php echo base_url() ?>">Analysis Page</a></li>
             </ul>
 
             <ul class="nav navbar-nav hidden-xs pull-right">
