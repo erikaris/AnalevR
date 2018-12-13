@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Oct 08, 2018 at 03:22 PM
--- Server version: 5.7.23
+-- Generation Time: Dec 13, 2018 at 05:31 PM
+-- Server version: 5.5.61-MariaDB-1~trusty
 -- PHP Version: 7.2.2
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -129,11 +129,21 @@ CREATE TABLE `module_file_model` (
 --
 
 INSERT INTO `module_file_model` (`id`, `module_id`, `filename`, `extension`) VALUES
+('02187b52-fdc6-11e8-93bb-02428393a14c', '9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'split', 'R'),
+('02e1ce56-fdb9-11e8-8290-1008b155cbfd', '9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'analyze', 'R'),
+('1cec730a-fdc8-11e8-97fe-02428393a14c', '9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'knn', 'R'),
 ('2f2cdcc9-5d11-4c49-84e1-302048f2e884', '10b9d078-1d0e-4167-bad5-3d8ce68fa822', 'plot', 'R'),
+('69481608-fe92-11e8-9b65-02425c96581b', 'dfb343d8-fe80-11e8-9b65-02425c96581b', 'init', 'R'),
 ('6d61052b-85bb-4f48-998b-8d561fbc65d9', '10b9d078-1d0e-4167-bad5-3d8ce68fa822', 'summary', 'R'),
+('73562924-feaa-11e8-b5db-02425c96581b', '7354b332-feaa-11e8-b5db-02425c96581b', 'ui', 'js'),
+('9e1e5f76-fc2c-11e8-b970-1008b155cbfd', '9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'ui', 'js'),
 ('a07128b6-c483-11e8-9df9-0242ac120006', 'e24dada0-c455-11e8-a577-0242ac120007', 'plot', 'R'),
-('a8122a1c-c568-11e8-879c-0242ac120007', 'a80f9644-c568-11e8-879c-0242ac120007', 'ui', 'js'),
 ('a93e4bfc-0101-440a-a1e3-9fbfbb5f4976', '10b9d078-1d0e-4167-bad5-3d8ce68fa822', 'predict', 'R'),
+('b85f9db6-feb4-11e8-9aa7-02425c96581b', '7354b332-feaa-11e8-b5db-02425c96581b', 'process', 'R'),
+('c4782856-fe92-11e8-9b65-02425c96581b', 'dfb343d8-fe80-11e8-9b65-02425c96581b', 'fhme', 'R'),
+('c668557e-feb4-11e8-9aa7-02425c96581b', '7354b332-feaa-11e8-b5db-02425c96581b', 'init', 'R'),
+('d48293a0-fdc3-11e8-bb24-02428393a14c', '9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'init', 'R'),
+('dfb485e0-fe80-11e8-9b65-02425c96581b', 'dfb343d8-fe80-11e8-9b65-02425c96581b', 'ui', 'js'),
 ('e101c29a-8ec1-4c40-8105-10313193ba12', '10b9d078-1d0e-4167-bad5-3d8ce68fa822', 'ui', 'js'),
 ('e24eedb4-c455-11e8-a577-0242ac120007', 'e24dada0-c455-11e8-a577-0242ac120007', 'ui', 'js');
 
@@ -156,8 +166,9 @@ CREATE TABLE `module_model` (
 
 INSERT INTO `module_model` (`id`, `name`, `label`, `owner`) VALUES
 ('10b9d078-1d0e-4167-bad5-3d8ce68fa822', 'LinearRegressionOLS', 'Linear Regression (OLS)', '4a4a62e4-1aed-4363-9dfd-cef6ae7fdabe'),
-('a80f9644-c568-11e8-879c-0242ac120007', 'A', 'AAA', 'fb29d957-5aec-4977-9d47-a6c04de3a07a'),
-('e24dada0-c455-11e8-a577-0242ac120007', 'ASDF', 'ASDF Module', 'b1e4f1d9-3e5d-4c76-acca-682160649c27');
+('7354b332-feaa-11e8-b5db-02425c96581b', 'LifeTable', 'Life Table', 'fb29d957-5aec-4977-9d47-a6c04de3a07a'),
+('9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'knn', 'K Nearest Neighborhood', 'fb29d957-5aec-4977-9d47-a6c04de3a07a'),
+('dfb343d8-fe80-11e8-9b65-02425c96581b', 'SAE_FHME', 'SAE: Fay-Herriot with Measurement Error', 'fb29d957-5aec-4977-9d47-a6c04de3a07a');
 
 -- --------------------------------------------------------
 
@@ -201,7 +212,7 @@ CREATE TABLE `user_model` (
 
 INSERT INTO `user_model` (`id`, `fullname`, `email`, `password`, `active`) VALUES
 ('4a4a62e4-1aed-4363-9dfd-cef6ae7fdabe', 'Aris Prawisudatama', 'soedomot@gmail.com', 'b7d517ff31bff1dc9367177f8ed39ceb', 1),
-('fb29d957-5aec-4977-9d47-a6c04de3a07a', 'Erika Siregar', 'soedomoto@gmail.com', 'b7d517ff31bff1dc9367177f8ed39ceb', 1);
+('fb29d957-5aec-4977-9d47-a6c04de3a07a', 'Soedomoto', 'soedomoto@gmail.com', 'b7d517ff31bff1dc9367177f8ed39ceb', 1);
 
 --
 -- Indexes for dumped tables

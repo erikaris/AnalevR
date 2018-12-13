@@ -23,3 +23,7 @@ RUN Rscript -e "install.packages(c('broom'), repos='https://cran.microsoft.com/s
 RUN Rscript -e "install.packages(c('rlist'), repos='https://cran.microsoft.com/snapshot/2018-12-01')"
 RUN Rscript -e "install.packages(c('gridExtra'), repos='https://cran.microsoft.com/snapshot/2018-12-01')"
 RUN Rscript -e "install.packages(c('uuid'), repos='https://cran.microsoft.com/snapshot/2018-12-01')"
+
+RUN Rscript -e "install.packages(c('sae'), repos='https://cran.microsoft.com/snapshot/2018-12-01')"
+RUN Rscript -e "install.packages(c('Scale'), repos='https://cran.microsoft.com/snapshot/2018-12-01')"
+RUN Rscript -e "install.packages(c('KMsurv'), repos='https://cran.microsoft.com/snapshot/2018-12-01')"

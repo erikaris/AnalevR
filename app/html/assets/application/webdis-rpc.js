@@ -155,7 +155,7 @@ function send_request_v2(message) {
     return new Promise((resolve, reject) => {
         ajax_post_v2(window.webdis_url, 'LPUSH/req/' + encodeURIComponent(message), 'text/plain')
             .then((resp) => {
-                var s_url = new URI(resp.request.url + '/' + resp.request.payload).normalize().toString(), 
+                var s_url = URI.normalize(resp.request.url + '/' + resp.request.payload), 
                     parts = s_url.split('/'), 
                     data = parts[parts.length-1],  
                     data = decodeURIComponent(data),  
@@ -179,7 +179,8 @@ function send_request_v2(message) {
                 });
             })
             .catch((resp) => {
-                var s_url = new URI(resp.request.url + '/' + resp.request.payload).normalize().toString(), 
+                console.log(resp);
+                var s_url = URI.normalize(resp.request.url + '/' + resp.request.payload), 
                     parts = s_url.split('/'), 
                     data = parts[parts.length-1],  
                     data = decodeURIComponent(data),  
@@ -212,7 +213,7 @@ function send_rpc_request_v2(req_id, func_name, params) {
 function wait_for_response_v2(req_id, resolve, reject) {
     ajax_post_v2(window.webdis_url, 'BRPOP/resp-' + req_id + '/timeout/30', 'text/plain')
         .then((resp) => {
-            var s_url = new URI(resp.request.url + '/' + resp.request.payload).normalize().toString(), 
+            var s_url = URI.normalize(resp.request.url + '/' + resp.request.payload), 
                 parts = s_url.split('/'), 
                 req_id = parts.filter(function (part) {
                     if (part.includes('resp-')) return true;
@@ -252,7 +253,7 @@ function wait_for_response_v2(req_id, resolve, reject) {
             });
         })
         .catch((resp) => {
-            var s_url = new URI(resp.request.url + '/' + resp.request.payload).normalize().toString(), 
+            var s_url = URI.normalize(resp.request.url + '/' + resp.request.payload), 
                 parts = s_url.split('/'), 
                 req_id = parts.filter(function (part) {
                     if (part.includes('resp-')) return true;

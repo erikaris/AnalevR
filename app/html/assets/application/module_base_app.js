@@ -1,10 +1,10 @@
-window.BaseModule = class extends React.Component {
+window.AR.BaseModule = class extends React.Component {
 	constructor(props) {
     super(props);
 
     this.state = {
-      module_info: this.props.module_info, 
       dataset_id: null, 
+      dataset_changing: false,
     };
   }
 
@@ -13,7 +13,7 @@ window.BaseModule = class extends React.Component {
   }
 
   module_info() {
-    return this.state.module_info;
+    return this.props.module_info;
   }
 
   datasets() {
@@ -30,6 +30,72 @@ window.BaseModule = class extends React.Component {
 
   dataset_name() {
     return this.dataset().label;
+  }
+
+  eval_file(filename, params, callback) {
+    var files = this.props.module_info.files.filter(f => f.filename == filename);
+    if (files.length == 0) {
+      if (callback) callback("Error: File having name \"{0}\" is not found!".format(filename));
+      return;
+    } 
+    else if (files.length > 1) {
+      if (callback) callback("Error: There are multiple file having name \"{0}\". Rename it into different name!".format(filename));
+      return;
+    }
+
+    eval_file_id(files[0].id, params, callback)
+  }
+}
+
+window.AR.FormGroup = class extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      show: true || this.props.show, 
+      title: this.props.title, 
+      help: this.props.help, 
+      // class: this.props.type.class,
+    };
+  }
+
+  componentWillUpdate() {
+    if ('type' in this.props) {
+      if ('ref' in this.props.type) {
+        this.props.type.ref(this.refs.class_ref);
+      }
+    }
+  }
+
+  show() {
+    this.setState({show: true});
+  }
+
+  hide() {
+    this.setState({show: false});
+  }
+
+  title(title) {
+    this.setState({title: title});
+  }
+
+  help(help) {
+    this.setState({help: help});
+  }
+
+  render() {
+    var props = _.assign({}, { ref: 'class_ref' }, 'type' in this.props ? ('props' in this.props.type ? this.props.type.props : {}) : {});
+
+    return this.state.show ? React.createElement(ReactBootstrap.FormGroup, {}, 
+        this.state.title ? React.createElement(ReactBootstrap.ControlLabel, {}, this.state.title) : null, 
+        'type' in this.props ? (
+          'class' in this.props.type ? (
+            'children' in this.props.type ? 
+              React.createElement(this.props.type.class, props, this.props.type.children) : 
+              React.createElement(this.props.type.class, props)
+          ) : null
+        ) : null, 
+        this.state.help ? React.createElement(ReactBootstrap.HelpBlock, {}, this.state.help) : null,
+      ) : null;
   }
 }
 

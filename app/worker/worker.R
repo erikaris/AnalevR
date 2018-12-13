@@ -4,6 +4,7 @@ module.dir <- Sys.getenv('MODULE_DIR', '/module')
 module.dir <- normalizePath(module.dir)
 workspace.dir <- Sys.getenv('WORKSPACE_DIR', '/workspace')
 workspace.dir <- normalizePath(workspace.dir)
+max.idle.iteration <- as.integer(Sys.getenv('AUTOKILL_AFTER_ITERATION', 20))
 
 library(redux)
 library(jsonlite)
@@ -21,13 +22,21 @@ pid <- Sys.getpid()
 conn$LPUSH("log", paste("New worker spawned with pid", pid))
 conn$LPUSH("worker.pids", pid)
 
-while(1) {
+idle.iteration <- 0
+
+while(idle.iteration < max.idle.iteration) {
 	# Capture input
     inp.arr <- conn$BRPOP("worker-req", 5)
 
     tryCatch({
 	    inp.req <- inp.arr[[2]]
-	    if (! is.null(inp.req)) {
+	    if (is.null(inp.req)) {
+	    	idle.iteration <<- idle.iteration + 1
+    	} else {
+    		idle.iteration <<- 0
+
+	    	conn$SET(paste0("worker.pid.", pid, ".processing"), TRUE)
+
 	    	inp.req <- fromJSON(inp.req)
 	    	req.sess <- inp.req$sess
 	        req.id <- inp.req$id
@@ -57,11 +66,12 @@ while(1) {
 
 			working.env <- new.env()
 
-			session.rdata <- file.path(session.dir, 'session.Rdata')
+			session.rdata <- file.path(session.dir, 'session.Rds')
 			if (file.exists(session.rdata)) {
-			    e <- new.env()
-				load(file=session.rdata, envir = e)
-				working.env <<- e$working.env
+				# e <- new.env()
+				# load(file=session.rdata, envir = e)
+				# working.env <<- e$working.env
+				working.env <<- readRDS(session.rdata)
 			}
 
 			working.env$req.sess = req.sess
@@ -103,8 +113,8 @@ while(1) {
 
 	            # Save session for next purpose
 		        conn$LPUSH("log", paste(script.name(), paste0("[", req.sess, "]"), "-", "Saving workspace to", session.rdata))
-		        save(working.env, file = session.rdata)
-		        # save(file=session.rdata, envir = working.env)
+		        # save(working.env, file = session.rdata)
+		        saveRDS(working.env, file=session.rdata, compress=FALSE)
 
 	        }, error = function(e) {
 	            err.code <<- 1
@@ -119,4 +129,6 @@ while(1) {
     }, error = function(e) {        
         conn$LPUSH("log", capture.output("error"))
     })
+
+    conn$SET(paste0("worker.pid.", pid, ".processing"), FALSE)
 }

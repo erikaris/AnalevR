@@ -1,15 +1,99 @@
+function list_all_datasets() {
+  return new Promise((resolve, reject) => {
+    analev_call('data.get_catalogues', [], (req_id, resp) => {
+      resp = JSON.parse(resp);
+      if (resp.success) {
+        resolve(resp.data);
+      } else {
+        sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+        reject(resp.data);
+      }
+    });
+  });
+}
+
+function list_all_modules() {
+  return new Promise((resolve, reject) => {
+    analev_call('module.all', [], (req_id, resp) => {
+      resp = JSON.parse(resp);
+      if (resp.success) {
+        resolve(resp.data);
+      } else {
+        sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+        reject(resp.data);
+      }
+    });
+  });
+}
+
+function select_dataset(id, df) {
+  return new Promise((resolve, reject) => {
+    analev_call('data.read', [id, df], (req_id, resp) => {
+      resp = JSON.parse(resp);
+      if (resp.success) {
+        var csv = Papa.parse(resp.data);
+        resolve(csv.data);
+      } else {
+        sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+        reject(resp.data);
+      }
+    });
+  });
+}
+
+function read_module_ui_file(module_id) {
+    return new Promise((resolve, reject) => {
+      analev_call('module.file.ui.read', [module_id], function(req_id, resp) {
+          resp = JSON.parse(resp);
+          if (resp.success) {
+            resolve(resp.data);
+          } else {
+            sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+            reject(resp.data);
+          }
+      });
+  });
+}
+
 window.MainApp = class extends React.Component {
 	constructor(props) {
     super(props);
     this.state = {
       datasets: null, 
+      datasets_change_counter: 0, 
+      datasets_updating: false, 
       modules: null, 
+      modules_change_counter: 0, 
+      modules_updating: false, 
     };
   }
 
-  componentDidMount(props, state) {}
+  componentDidMount(props, state) {
+    this.load_datasets();
+    this.load_modules();
+  }
 
-  componentDidUpdate(props, state) {}
+  componentDidUpdate(props, prevState) {
+    if (this.state.datasets_updating) {
+      this.setState({
+        datasets_updating: false, 
+      });
+
+      setTimeout(() => {
+        this.load_datasets();
+      }, 60000);
+    }
+
+    if (this.state.modules_updating) {
+      this.setState({
+        modules_updating: false, 
+      });
+
+      setTimeout(() => {
+        this.load_modules();
+      }, 120000);
+    }
+  }
 
   datasets() {
     return this.state.datasets;
@@ -29,36 +113,55 @@ window.MainApp = class extends React.Component {
   }
 
   load_datasets() {
-    analev_call('data.get_catalogues', [], (req_id, resp) => {
-      resp = JSON.parse(resp);
-      if (resp.success) {
-        this.setState({
-          datasets: resp.data.reduce((obj, d) => {
-            d.selected = false;
-            obj[d.id] = d;
-            return obj;
-          }, {})
-        });
-      } else {
-        sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-      }
+    list_all_datasets().then((od) => {
+      var datasets = this.datasets() || {};
+
+      od.forEach((d) => {
+        if (Object.keys(datasets).includes(d.id)) {
+          datasets[d.id] =  _.extend(datasets[d.id], d);
+        } else {
+          datasets[d.id] =  _.extend(d, { selected: false });
+        }
+      });
+
+      var od_keys = od.map(d => d.id);
+      Object.values(datasets).forEach(d => {
+        if (! od_keys.includes(d.id)) delete datasets[d.id]
+      });
+
+      this.setState({
+        datasets: datasets, 
+        datasets_change_counter: this.state.datasets_change_counter + 1,
+        datasets_updating: true, 
+      });
     });
   }
 
   load_modules() {
-    analev_call('module.all', [], (req_id, resp) => {
-      resp = JSON.parse(resp);
-      if (resp.success) {
-        this.setState({
-          modules: resp.data.reduce((obj, d) => {
-            d.selected = false;
-            obj[d.id] = d;
-            return obj;
-          }, {})
-        });
-      } else {
-        sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-      }
+    list_all_modules().then((od) => {
+      var modules = this.modules() || {};
+
+      od.forEach((d) => {
+        if (! ('id' in d)) return;
+        if ('files' in d) d.files = JSON.parse(d.files);
+
+        if (Object.keys(modules).includes(d.id)) {
+          modules[d.id] =  _.extend(modules[d.id], d);
+        } else {
+          modules[d.id] =  _.extend(d, { selected: false });
+        }
+      });
+
+      var od_keys = od.map(d => d.id);
+      Object.values(modules).forEach(d => {
+        if (! od_keys.includes(d.id)) delete modules[d.id]
+      });
+
+      this.setState({
+        modules: modules, 
+        modules_change_counter: this.state.modules_change_counter + 1,
+        modules_updating: true, 
+      });
     });
   }
 
@@ -198,6 +301,21 @@ window.MainApp = class extends React.Component {
                             className: 'ti-blackboard'
                           })), 
                           React.createElement(ReactBootstrap.Button, {
+                            title: 'Reload module', 
+                            onClick: () => {
+                              read_module_ui_file(d.id).then(f => {
+                                var modules = this.modules();
+                                modules[d.id].src = f.content;
+
+                                this.refs.modal_module_selector.unload_script(modules[d.id], () => {
+                                  this.refs.modal_module_selector.load_script(modules[d.id], () => {});
+                                });
+                              });
+                            }
+                          }, React.createElement('span', {
+                            className: 'ti-reload'
+                          })), 
+                          React.createElement(ReactBootstrap.Button, {
                             title: 'Unload module', 
                             onClick: () => {
                               this.refs.modal_module_selector.unload_script(this.modules()[d.id], () => {
@@ -254,44 +372,23 @@ window.ModalDatasetSelector = class extends React.Component {
     return this.props.app;
   }
 
-  generate_index(id) {
-    if (! ('idx' in this.app().datasets()[id])) {
-      var idxs = [], 
-        n_ds = 0;
-
-      Object.values(this.app().datasets()).forEach(d => {
-        if ('idx' in d) idxs.push(d.idx);
-        n_ds += 1;
-      });
-
-      for(var i=0; i<n_ds; i++) {
-        if (! (i in idxs)) {
-          this.app().datasets()[id].idx = i;
-          break;
-        }
-      }
-    }
-  }
-
   select_dataset(id) {
-    this.generate_index(id);
+    var datasets = this.app().datasets();
 
-    analev_call('data.read', [this.app().datasets()[id].id, 'df' + this.app().datasets()[id].idx], (req_id, resp) => {
-      resp = JSON.parse(resp);
-      if (resp.success) {
-        var data = Papa.parse(resp.data);
+    // Generate index
+    if (!('idx' in datasets[id])) {
+      var idxs = Object.values(datasets).filter(d => ('idx' in d));
+      datasets[id].idx = idxs.length;
+    }
 
-        var datasets = this.app().datasets();
-        datasets[id].variables = data.data[0];
-        datasets[id].preview = data.data;
-        datasets[id].selected = true;
+    select_dataset(datasets[id].id, 'df{0}'.format(datasets[id].idx)).then((tbl) => {
+      datasets[id].variables = tbl[0];
+      datasets[id].preview = tbl;
+      datasets[id].selected = true;
 
-        this.setState({ show: false });
-        this.app().setState({datasets: datasets});
-      } else {
-        sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-      }
-    })
+      this.setState({ show: false });
+      this.app().setState({datasets: datasets});
+    });
   }
 
   render() {
@@ -537,8 +634,8 @@ window.ModalModuleSelector = class extends React.Component {
       document.body.appendChild(script);
 
       if (typeof window[clazz] != 'undefined') {
-        if (fn_success) fn_success();
         console.log('Module "' + module.label + '" is loaded');
+        if (fn_success) fn_success();
       }
     }
   }
@@ -547,34 +644,29 @@ window.ModalModuleSelector = class extends React.Component {
     var elem = document.getElementById('module_' + module.id), 
       clazz = module.name;
 
-    delete window[clazz];
-
     if(elem) {
+      delete window[clazz];
       elem.parentNode.removeChild(elem);
-      if (fn_success) fn_success();
 
       console.log('module_' + module.label + ' is unloaded');
+
+      if (fn_success) fn_success();
     } else {
       console.log('module_' + module.label + ' is failed to unload');
     }
   }
 
   select_module(id) {
-    analev_call('module.file.ui.read', [id], (req_id, resp) => {
-      resp = JSON.parse(resp);
-      if (resp.success) {
-        var modules = this.app().modules();
-        modules[id].src = resp.data.content;
+    read_module_ui_file(id).then((d) => {
+      var modules = this.app().modules();
+      modules[id].src = d.content;
 
-        this.load_script(modules[id], () => {
-          modules[id].selected = true;   
+      this.load_script(modules[id], () => {
+        modules[id].selected = true;   
 
-          this.setState({ show: false });
-          this.app().setState({modules: modules});
-        });
-      } else {
-        sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-      }
+        this.setState({ show: false });
+        this.app().setState({modules: modules});
+      });
     });
   }
 

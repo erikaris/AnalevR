@@ -4,6 +4,15 @@ module.all <- function() {
     rows <- dbFetch(rs)
     dbClearResult(rs)
 
+    for (i in 0:length(rows)-1) {
+        db <- database.mysql()
+        rs <- dbSendQuery(db, paste0('SELECT f.id, f.filename, f.extension FROM module_file_model f WHERE f.module_id="', rows$id[i], '"'))
+        files <- dbFetch(rs)
+        dbClearResult(rs)
+
+        rows[i, 'files'] <- toJSON(files)
+    }
+
     return(rows)
 }
 
@@ -41,7 +50,7 @@ module.add <- function(mod.name, mod.label) {
 
     ui.js.id <- UUIDgenerate(use.time=TRUE)
     ui.js <- file.path(mod.loc, paste0(ui.js.id, '.js'))
-    cat(paste0("// ui.js\n \n window.", mod.name, " = class extends BaseModule {\n constructor(props) {\n super(props);\n this.state = {};\n }\n \n render() {\n return React.createElement('div', { className: 'row', ref: (el) => this.row = el })\n }\n }"), file=ui.js, sep="\n")
+    cat(paste0("// ui.js\n \n window.", mod.name, " = class extends AR.BaseModule {\n constructor(props) {\n super(props);\n this.state = _.extend(this.state, { \nvariables: [], \n});\n }\n \ncomponentDidUpdate(prevProps, prevState) { \nif (!_.isEqual(prevState.dataset_id, this.state.dataset_id)) this.setState({dataset_changing: true}); \nif (this.state.dataset_changing) this.setState({variables: this.dataset().variables, dataset_changing: false}); \n} \n \nrender() { \nreturn React.createElement('div', { className: 'row' }, \nReact.createElement('div', { className: 'col-lg-4 col-md-4 col-sm-12 col-xs-12' }, \nReact.createElement(AR.FormGroup, { \ntitle: 'Dataset', \nhelp: 'Select dataset', \ntype: { \nclass: ReactBootstrap.SelectPicker, \nprops: { \nmultiple: false, \noptions: Object.values(this.datasets()).map((d) => { return {value: d.id, label: d.label} }), \nwidth: 'auto', \n'bs-events': { \nonLoaded: (ev) => { \nthis.setState({dataset_id: ev.target.value}); \n}, \nonChanged: (ev) => { \nthis.setState({dataset_id: ev.target.value}); \n} \n} \n} \n}, \n}), \n), \nReact.createElement('div', { className: 'col-lg-8 col-md-8 col-sm-12 col-xs-12' }, \nReact.createElement(ARCodeMirror, { title: 'Result', ref: (el) => this.result_ta = el }) \n) \n); \n}\n }"), file=ui.js, sep="\n")
 
     # Insert module
     dbGetQuery(db, paste0('INSERT INTO module_model (id, name, label, owner) VALUES("', mod.id, '", "', mod.name, '", "', mod.label, '", "', sess$user_id, '")'))
@@ -119,7 +128,7 @@ module.file.add.r <- function(mod.id, file.name) {
 
     ui.r.id <- UUIDgenerate(use.time=TRUE)
     ui.r <- file.path(mod.loc, paste0(ui.r.id, '.R'))
-    cat(paste0("# ", file.name, ".R"), file=ui.r, sep="\n")
+    cat(paste0("# ", file.name, ".R \n\nfn.", file.name, " <- function() { \n\n} \n\nfn.", file.name, "()"), file=ui.r, sep="\n")
 
     # Insert file
     dbGetQuery(db, paste0('INSERT INTO module_file_model (id, module_id, filename, extension) VALUES("', ui.r.id, '", "', mod.id, '", "', file.name, '", "R")'))
@@ -218,6 +227,34 @@ module.file.save <- function(file.id, content) {
 
     file.loc <- file.path(module.dir, row$module_id, paste0(row$id, '.', row$extension))
     cat(content, file=file.loc, sep="\n")
+}
+
+module.file.id.eval <- function(file.id, format.params) {
+    library(readr)
+    library(stringr)
+
+    db <- database.mysql()
+    rs <- dbSendQuery(db, paste0('SELECT id, module_id, extension FROM module_file_model WHERE id = "', file.id, '"'))
+    row <- dbFetch(rs)
+    dbClearResult(rs)
+
+    file.loc <- file.path(module.dir, row$module_id, paste0(row$id, '.', row$extension))
+
+    # file.content <- read_file(file.loc)
+    # file.content <- gsub(pattern = "#[^\\\n]*", replacement = "", x = read_file(file.loc))
+    file.lines <- read_lines(file=file.loc)
+    fn <- function(x) gsub(pattern = "#[^*]*", replacement = "", x = x)
+    file.content <- paste(sapply(file.lines, fn), collapse="\n")
+
+    for (name in names(format.params)) {
+        file.content <- str_replace_all(file.content, paste0('\\{', name, '\\}'), format.params[[name]])
+    }
+
+    # return(file.content)
+
+    # conn$LPUSH("log", paste(script.name(), paste0("[", req.sess, "]"), "-", paste0("Executing command...\n")))
+    conn$LPUSH(paste0("worker-req"), toJSON(list(sess=req.sess, 'id'=req.id, 'cmd'=file.content)))
+    return(as.logical(0))
 }
 
 module.file.name.eval <- function(file.name, format.params) {

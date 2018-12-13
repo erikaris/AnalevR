@@ -51,7 +51,7 @@
 <script type="text/javascript">
     $(function() {
         window.webdis_url = '<?php echo $broker_url ?>';
-        window.session_id = '7c3fc291-ea44-4a47-1ef7-3f858a2de404'; //uuid();
+        window.session_id = '<?php echo $session->id ?>';
 
         // Hide loading page indicator
         $('.loading-modal').addClass('animated').css('z-index', -1);

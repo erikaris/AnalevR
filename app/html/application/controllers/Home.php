@@ -21,7 +21,11 @@ class Home extends CI_Controller
             redirect(base_url() . 'user/login?next=' . $current_page, 'location');
         }
 
+        $default_session = default_session($this->user->id);
+
         $this->data = array(
+            'user' => $this->user, 
+            'session' => $default_session, 
             'broker_url' => $this->config->item("broker_url"), 
             'logout_url' => base_url() . 'user/clogout'
         );
