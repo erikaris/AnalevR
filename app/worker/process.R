@@ -7,22 +7,23 @@ library(processx)
 source(file.path(app.dir, 'util.R'))
 
 conn <- redux::hiredis()
+host.name <- Sys.info()[['nodename']]
 
 while(1) {
 	idle.worker.pids <- c()
 
 	# Check whether workers are alive
-	n.worker <- as.integer(conn$LLEN("worker.pids"))
+	n.worker <- as.integer(conn$LLEN(paste0(host.name, ".worker.pids")))
 	if (n.worker > 0) {
 		alive.worker.pids <- c()
 
 		while(1) {
-			worker.pid <- conn$RPOP("worker.pids")
+			worker.pid <- conn$RPOP(paste0(host.name, ".worker.pids"))
 			if (! is.null(worker.pid)) {
 				if (processx:::process__exists(as.integer(worker.pid))) {
 					alive.worker.pids <- c(alive.worker.pids, as.integer(worker.pid))
 
-					is.processing <- conn$GET(paste0("worker.pid.", worker.pid, ".processing"))
+					is.processing <- conn$GET(paste0(host.name, ".worker.pid.", worker.pid, ".processing"))
 					if (is.null(is.processing)) is.processing <- TRUE
 					else if (as.integer(is.processing) == 0) is.processing <- FALSE
 					else if (as.integer(is.processing) == 1) is.processing <- TRUE
@@ -36,7 +37,7 @@ while(1) {
 			}
 		}
 
-		for (pid in alive.worker.pids) conn$LPUSH("worker.pids", pid)
+		for (pid in alive.worker.pids) conn$LPUSH(paste0(host.name, ".worker.pids"), pid)
 		# n.worker <- as.integer(conn$LLEN("worker.pids"))
 		n.worker <- length(alive.worker.pids)
 	}

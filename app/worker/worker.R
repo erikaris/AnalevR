@@ -17,10 +17,11 @@ file.sources = list.files(c(file.path(app.dir, 'rpc_helper')), pattern="*.R$", f
 sapply(file.sources, source, .GlobalEnv)
 
 conn <- redux::hiredis()
+host.name <- Sys.info()[['nodename']]
 
 pid <- Sys.getpid()
 conn$LPUSH("log", paste("New worker spawned with pid", pid))
-conn$LPUSH("worker.pids", pid)
+conn$LPUSH(paste0(host.name, ".worker.pids"), pid)
 
 idle.iteration <- 0
 
@@ -35,7 +36,7 @@ while(idle.iteration < max.idle.iteration) {
     	} else {
     		idle.iteration <<- 0
 
-	    	conn$SET(paste0("worker.pid.", pid, ".processing"), TRUE)
+	    	conn$SET(paste0(host.name, ".worker.pid.", pid, ".processing"), TRUE)
 
 	    	inp.req <- fromJSON(inp.req)
 	    	req.sess <- inp.req$sess
@@ -130,5 +131,5 @@ while(idle.iteration < max.idle.iteration) {
         conn$LPUSH("log", capture.output("error"))
     })
 
-    conn$SET(paste0("worker.pid.", pid, ".processing"), FALSE)
+    conn$SET(paste0(host.name, ".worker.pid.", pid, ".processing"), FALSE)
 }
