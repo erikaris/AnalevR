@@ -5,7 +5,7 @@ services:
     image: redis:4-alpine
     ports:
       - "6379:6379"
-    restart: always
+    # restart: always
 
   webdis:
     image: anapsix/webdis:latest
@@ -15,7 +15,7 @@ services:
       - redis:redis
     ports:
       - "7379:7379"
-    restart: always
+    # restart: always
 
   mysql:
     image: mariadb:5.5.61-trusty
@@ -26,7 +26,7 @@ services:
       - MYSQL_DATABASE=analev
     ports:
       - "3306:3306"
-    restart: always
+    # restart: always
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:4.7
@@ -40,7 +40,7 @@ services:
       - mysql:db
     ports:
       - "8889:80"
-    restart: always
+    # restart: always
 
   php:
     image: ulsmith/alpine-apache-php7
@@ -54,47 +54,47 @@ services:
       - ./app/html:/app/public
     ports:
       - "8888:80"
-    restart: always
+    # restart: always
 
-  worker:
-    build: image
-    depends_on:
-      - redis
-      - mysql
-    links:
-      - redis:redis
-      - mysql:db
-    volumes:
-      - ./app/worker:/app
-      - ./storage/module:/module
-      - ./storage/data:/data
-      - ./storage/workspace:/workspace
-    environment:
-      - AUTOKILL_AFTER_ITERATION=20
-      - MAX_WORKER=10
-      - APP_DIR=/app
-      - WORKSPACE_DIR=/workspace
-      - DATA_DIR=/data
-      - REDIS_HOST=redis
-      - MySQL_USER=root
-      - MySQL_PASSWORD=toor
-      - MYSQL_DATABASE=analev
-      - MYSQL_HOST=db
-    pid: "host"
-    command: "Rscript /app/manager.R"
-    restart: always
+  # worker:
+  #   build: image
+  #   depends_on:
+  #     - redis
+  #     - mysql
+  #   links:
+  #     - redis:redis
+  #     - mysql:db
+  #   volumes:
+  #     - ./app/worker:/app
+  #     - ./storage/module:/module
+  #     - ./storage/data:/data
+  #     - ./storage/workspace:/workspace
+  #   environment:
+  #     - AUTOKILL_AFTER_ITERATION=20
+  #     - MAX_WORKER=10
+  #     - APP_DIR=/app
+  #     - WORKSPACE_DIR=/workspace
+  #     - DATA_DIR=/data
+  #     - REDIS_HOST=redis
+  #     - MySQL_USER=root
+  #     - MySQL_PASSWORD=toor
+  #     - MYSQL_DATABASE=analev
+  #     - MYSQL_HOST=db
+  #   pid: "host"
+  #   command: "Rscript /app/manager.R"
+  #   # restart: always
 
-  logger:
-    build: image
-    depends_on:
-      - redis
-    links:
-      - redis:redis
-    volumes:
-      - ./app/worker:/app
-    environment:
-      - APP_DIR=/app
-      - REDIS_HOST=redis
-    pid: "host"
-    command: "Rscript /app/logger.R"
-    restart: always
+  # logger:
+  #   build: image
+  #   depends_on:
+  #     - redis
+  #   links:
+  #     - redis:redis
+  #   volumes:
+  #     - ./app/worker:/app
+  #   environment:
+  #     - APP_DIR=/app
+  #     - REDIS_HOST=redis
+  #   pid: "host"
+  #   command: "Rscript /app/logger.R"
+  #   # restart: always

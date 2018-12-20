@@ -60,39 +60,10 @@ window.MainApp = class extends React.Component {
     super(props);
     this.state = {
       datasets: null, 
-      datasets_change_counter: 0, 
-      datasets_updating: false, 
+      datasets_should_update: true, 
       modules: null, 
-      modules_change_counter: 0, 
-      modules_updating: false, 
+      modules_should_update: true, 
     };
-  }
-
-  componentDidMount(props, state) {
-    this.load_datasets();
-    this.load_modules();
-  }
-
-  componentDidUpdate(props, prevState) {
-    if (this.state.datasets_updating) {
-      this.setState({
-        datasets_updating: false, 
-      });
-
-      setTimeout(() => {
-        this.load_datasets();
-      }, 60000);
-    }
-
-    if (this.state.modules_updating) {
-      this.setState({
-        modules_updating: false, 
-      });
-
-      setTimeout(() => {
-        this.load_modules();
-      }, 120000);
-    }
   }
 
   datasets() {
@@ -112,6 +83,108 @@ window.MainApp = class extends React.Component {
     return this.state.modules;
   }
 
+  componentDidMount(props, state) {
+    analev_call('session.read', [], (req_id, resp) => {
+      resp = JSON.parse(resp);
+      if (resp.success && resp.data != "") {
+        var saved_data = JSON.parse(resp.data);
+
+        this.setState((prevState, props) => {
+          return {...prevState, 
+            // ['_selected_datasets']: saved_data.datasets, 
+            // ['_selected_modules']: saved_data.modules, 
+            ['datasets']: Object.keys(saved_data.datasets).map(id => {
+                return {
+                  id: id, 
+                  idx: saved_data.datasets[id], 
+                  selected: true, 
+                  loaded: false, 
+                };
+              }).reduce((obj, d) => {
+                obj[d.id] = d;
+                return obj;
+              }, {}), 
+            ['modules']: saved_data.modules.map(id => {
+                return {
+                  id: id, 
+                  selected: true, 
+                  loaded: false,
+                };
+              }).reduce((obj, d) => {
+                obj[d.id] = d;
+                return obj;
+              }, {}), 
+          };
+        });
+      }
+    });
+  }
+
+  componentDidUpdate(props, prevState) {
+    if (this.state.datasets_should_update) {
+      this.setState((prevState, props) => {
+        return {...prevState, 
+          ['datasets_should_update']: false, 
+        };
+      });
+
+      this.load_datasets();
+    } else if (prevState.datasets_should_update != this.state.datasets_should_update) {
+      setTimeout(() => {
+        this.setState((prevState, props) => {
+          return {...prevState, 
+            ['datasets_should_update']: true, 
+          };
+        });
+      }, 60 * 1000);
+    }
+
+    if (this.state.modules_should_update) {
+      this.setState((prevState, props) => {
+        return {...prevState, 
+          ['modules_should_update']: false, 
+        };
+      });
+
+      this.load_modules();
+    } else if (prevState.modules_should_update != this.state.modules_should_update) {
+      setTimeout(() => {
+        this.setState((prevState, props) => {
+          return {...prevState, 
+            ['modules_should_update']: true, 
+          };
+        });
+      }, 100 * 1000);
+    }
+
+    // Save changes to json file
+    var datasets = this.state.datasets || {}; 
+    var modules = this.state.modules || {};
+
+    var datasets_changes = JSON.stringify(_.entries(datasets)) != JSON.stringify(_.entries(prevState.datasets || {}));
+    var modules_changes = JSON.stringify(_.entries(modules)) != JSON.stringify(_.entries(prevState.modules || {}));
+
+    if (datasets_changes || modules_changes) {
+      var selected_datasets = _.filter(Object.values(datasets), (d) => d.selected);
+      var selected_modules = _.filter(Object.values(modules), (d) => d.selected);
+
+      if (selected_datasets.length > 0 || selected_modules.length > 0) {
+        var saved_data = {
+          'datasets': _.orderBy(selected_datasets, ['idx'], ['asc'])
+            .reduce((obj, d) => { obj[d.id] = d.idx; return obj; }, {}), 
+          'modules': selected_modules.map(d => d.id), 
+        };
+
+        analev_call('session.save', [JSON.stringify(saved_data)], (req_id, resp) => {
+          resp = JSON.parse(resp);
+          if (resp.success) {
+            console.log('Changes saved')
+          }
+        });
+      }
+    }
+  }
+
   load_datasets() {
     list_all_datasets().then((od) => {
       var datasets = this.datasets() || {};
@@ -126,13 +199,46 @@ window.MainApp = class extends React.Component {
 
       var od_keys = od.map(d => d.id);
       Object.values(datasets).forEach(d => {
-        if (! od_keys.includes(d.id)) delete datasets[d.id]
+        if (! od_keys.includes(d.id)) {
+          delete datasets[d.id];
+        }
       });
 
-      this.setState({
-        datasets: datasets, 
-        datasets_change_counter: this.state.datasets_change_counter + 1,
-        datasets_updating: true, 
+      this.setState((prevState, props) => {
+        return {...prevState, 
+          ['datasets']: {...datasets}, 
+        };
+      });
+
+      Object.values(this.datasets()).filter(d => d.selected).forEach(d => {
+        this.select_dataset(d.id, d.idx);
+      });
+    });
+  }
+
+  select_dataset(id, idx=null) {
+    // Generate index
+    if (idx == null) {
+      if (!('idx' in this.datasets()[id])) {
+        var idxs = Object.values(this.datasets()).filter(d => ('idx' in d));
+        this.datasets()[id].idx = idxs.length;
+      }
+    } else {
+      this.datasets()[id].idx = idx;
+    }
+
+    select_dataset(id, 'df{0}'.format(this.datasets()[id].idx)).then((tbl) => {
+      this.setState((prevState, props) => {
+        return {...prevState, 
+          ['datasets']: {...this.datasets(), 
+            [id]: {...this.datasets()[id], 
+              ['variables']: tbl[0], 
+              ['preview']: tbl, 
+              ['selected']: true, 
+              ['loaded']: true, 
+            }
+          }, 
+        };
       });
     });
   }
@@ -157,12 +263,72 @@ window.MainApp = class extends React.Component {
         if (! od_keys.includes(d.id)) delete modules[d.id]
       });
 
-      this.setState({
-        modules: modules, 
-        modules_change_counter: this.state.modules_change_counter + 1,
-        modules_updating: true, 
+      this.setState((prevState, props) => {
+        return {...prevState, 
+          ['modules']: {...modules}, 
+        };
+      });
+
+      Object.values(this.modules()).filter(d => d.selected).forEach(d => {
+        this.select_module(d.id);
       });
     });
+  }
+
+  select_module(id) {
+    read_module_ui_file(id).then((d) => {
+      this.modules()[id].src = d.content;
+
+      this.load_script(this.modules()[id], () => {
+        this.setState((prevState, props) => {
+          return {...prevState, 
+            ['modules']: {...this.modules(), 
+              [id]: {...this.modules()[id], 
+                ['selected']: true, 
+                ['loaded']: true, 
+              }
+            }, 
+          };
+        });
+      });
+    });
+  }
+
+  load_script(module, fn_success) {
+    var text = module.src, 
+      clazz = module.name;
+
+    if (typeof window[clazz] != 'undefined') {
+      console.log('Module "' + module.label + '" has been already loaded')
+    } else {
+      var script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.text = text;
+      script.id = 'module_' + module.id;
+
+      document.body.appendChild(script);
+
+      if (typeof window[clazz] != 'undefined') {
+        console.log('Module "' + module.label + '" is loaded');
+        if (fn_success) fn_success();
+      }
+    }
+  }
+
+  unload_script(module, fn_success) {
+    var elem = document.getElementById('module_' + module.id), 
+      clazz = module.name;
+
+    if(elem) {
+      delete window[clazz];
+      elem.parentNode.removeChild(elem);
+
+      console.log('module_' + module.label + ' is unloaded');
+
+      if (fn_success) fn_success();
+    } else {
+      console.log('module_' + module.label + ' is failed to unload');
+    }
   }
 
   render() {
@@ -200,6 +366,7 @@ window.MainApp = class extends React.Component {
                         React.createElement('td', {}, 
                           React.createElement(ReactBootstrap.Button, {
                             title: 'Preview dataset', 
+                            disabled: !d.loaded, 
                             onClick: () => {
                               this.refs.result_panel.add(d.id + '-preview', 'Preview of ' + d.label, 
                                 React.createElement(PreviewDataset, {app: this, id: d.id})
@@ -210,6 +377,7 @@ window.MainApp = class extends React.Component {
                           })), 
                           React.createElement(ReactBootstrap.Button, {
                             title: 'Visualize dataset', 
+                            disabled: !d.loaded, 
                             onClick: () => {
                               this.refs.result_panel.add(d.id + '-visualization', 'Visualization of ' + d.label, 
                                 React.createElement(VisualizeDataset, {app: this, id: d.id})
@@ -221,9 +389,15 @@ window.MainApp = class extends React.Component {
                           React.createElement(ReactBootstrap.Button, {
                             title: 'Remove dataset', 
                             onClick: () => {
-                              var datasets = this.datasets();
-                              datasets[d.id].selected = false;
-                              this.setState({datasets: datasets});
+                              this.setState((prevState, props) => {
+                                return {
+                                  ['datasets']: {...this.datasets(), 
+                                    [d.id]: {...this.datasets()[d.id], 
+                                      ['selected']: false,
+                                    }, 
+                                  }, 
+                                };
+                              });
                             }
                           }, React.createElement('span', {
                             className: 'ti-trash'
@@ -286,12 +460,8 @@ window.MainApp = class extends React.Component {
                         React.createElement('td', {}, 
                           React.createElement(ReactBootstrap.Button, {
                             title: 'Open Module', 
+                            disabled: !(d.loaded && Object.values(this.datasets()).filter(d => d.loaded).length > 0), 
                             onClick: () => {
-                              if (Object.keys(this.selected_datasets()).length == 0) {
-                                sweetAlert('Oops...', 'You must select at least one dataset!', "error");
-                                return;
-                              }
-
                               this.refs.result_panel.add(d.id, d.label, React.createElement(eval(d.name), {
                                 app: this, 
                                 module_info: d, 
@@ -307,8 +477,8 @@ window.MainApp = class extends React.Component {
                                 var modules = this.modules();
                                 modules[d.id].src = f.content;
 
-                                this.refs.modal_module_selector.unload_script(modules[d.id], () => {
-                                  this.refs.modal_module_selector.load_script(modules[d.id], () => {});
+                                this.unload_script(modules[d.id], () => {
+                                  this.load_script(modules[d.id], () => {});
                                 });
                               });
                             }
@@ -318,12 +488,16 @@ window.MainApp = class extends React.Component {
                           React.createElement(ReactBootstrap.Button, {
                             title: 'Unload module', 
                             onClick: () => {
-                              this.refs.modal_module_selector.unload_script(this.modules()[d.id], () => {
-                                var modules = this.modules();
-                                modules[d.id].selected = false;   
-
-                                this.refs.modal_module_selector.setState({ show: false });
-                                this.setState({modules: modules});
+                              this.unload_script(this.modules()[d.id], () => {
+                                this.setState((prevState, props) => {
+                                  return {
+                                    ['modules']: {...this.modules(), 
+                                      [d.id]: {...this.modules()[d.id], 
+                                        ['selected']: false,
+                                      }, 
+                                    }, 
+                                  };
+                                });
                               });
                             }
                           }, React.createElement('span', {
@@ -342,12 +516,12 @@ window.MainApp = class extends React.Component {
 
       // Result panel
       React.createElement('div', { className: 'col-lg-12 col-md-12 col-sm-12 col-xs-12' }, 
-        React.createElement('div', { className: 'card alert' }, 
-          React.createElement('div', { className: 'card-header' }), 
-          React.createElement('div', { className: 'card-body' }, 
-            React.createElement(ResultPanel, { ref: 'result_panel' })
-          )
-        )
+        // React.createElement('div', { className: 'card alert' }, 
+        //   React.createElement('div', { className: 'card-header' }), 
+        //   React.createElement('div', { className: 'card-body' }, 
+            React.createElement(ResultPanel, { ref: 'result_panel' }), 
+        //   )
+        // )
       )
     )
   }
@@ -370,25 +544,6 @@ window.ModalDatasetSelector = class extends React.Component {
 
   app() {
     return this.props.app;
-  }
-
-  select_dataset(id) {
-    var datasets = this.app().datasets();
-
-    // Generate index
-    if (!('idx' in datasets[id])) {
-      var idxs = Object.values(datasets).filter(d => ('idx' in d));
-      datasets[id].idx = idxs.length;
-    }
-
-    select_dataset(datasets[id].id, 'df{0}'.format(datasets[id].idx)).then((tbl) => {
-      datasets[id].variables = tbl[0];
-      datasets[id].preview = tbl;
-      datasets[id].selected = true;
-
-      this.setState({ show: false });
-      this.app().setState({datasets: datasets});
-    });
   }
 
   render() {
@@ -414,7 +569,7 @@ window.ModalDatasetSelector = class extends React.Component {
                     key: id, 
                     href: '#', 
                     onClick: () => {
-                      this.select_dataset(id);
+                      this.app().select_dataset(id);
                     }
                   }, this.app().datasets()[id].label);
                 }
@@ -619,57 +774,6 @@ window.ModalModuleSelector = class extends React.Component {
     return this.props.app;
   }
 
-  load_script(module, fn_success) {
-    var text = module.src, 
-      clazz = module.name;
-
-    if (typeof window[clazz] != 'undefined') {
-      console.log('Module "' + module.label + '" has been already loaded')
-    } else {
-      var script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.text = text;
-      script.id = 'module_' + module.id;
-
-      document.body.appendChild(script);
-
-      if (typeof window[clazz] != 'undefined') {
-        console.log('Module "' + module.label + '" is loaded');
-        if (fn_success) fn_success();
-      }
-    }
-  }
-
-  unload_script(module, fn_success) {
-    var elem = document.getElementById('module_' + module.id), 
-      clazz = module.name;
-
-    if(elem) {
-      delete window[clazz];
-      elem.parentNode.removeChild(elem);
-
-      console.log('module_' + module.label + ' is unloaded');
-
-      if (fn_success) fn_success();
-    } else {
-      console.log('module_' + module.label + ' is failed to unload');
-    }
-  }
-
-  select_module(id) {
-    read_module_ui_file(id).then((d) => {
-      var modules = this.app().modules();
-      modules[id].src = d.content;
-
-      this.load_script(modules[id], () => {
-        modules[id].selected = true;   
-
-        this.setState({ show: false });
-        this.app().setState({modules: modules});
-      });
-    });
-  }
-
   render() {
     return React.createElement(ReactBootstrap.Modal, {
       show: this.state.show, 
@@ -693,7 +797,7 @@ window.ModalModuleSelector = class extends React.Component {
                     key: m.id, 
                     href: '#', 
                     onClick: () => {
-                      this.select_module(m.id);
+                      this.app().select_module(m.id);
                     }
                   }, m.label, 
                   React.createElement('small', {}, ' by ' + m.owner_name)))
@@ -748,27 +852,32 @@ window.ResultPanel = class extends React.Component {
   }
 
   render() {
-    return React.createElement('div', {}, 
-      Object.keys(this.state.tabs).length > 0 ? 
-        React.createElement('a', {
-          href: '#', 
-          style: {float: 'right', padding: '7px'}, 
-          title: 'Close tab ' + this.state.tabs[this.state.activeKey].title, 
-          onClick: () => this.remove(this.state.activeKey)
-        }, 
-          React.createElement('span', {className: 'ti-close'})
-        ) : null, 
-      React.createElement(ReactBootstrap.Tabs, {
-        id: 'result_tabs', 
-        activeKey: this.state.activeKey, 
-        onSelect: (key) => {
-          this.setState({activeKey: key});
-        }
-      }, 
-        Object.values(this.state.tabs).map(t => 
-          React.createElement(ReactBootstrap.Tab, {title: t.title, eventKey: t.id, key: t.id}, t.content)
+    return Object.keys(this.state.tabs).length > 0 ? 
+      React.createElement('div', { className: 'card alert' }, 
+        React.createElement('div', { className: 'card-header' }), 
+        React.createElement('div', { className: 'card-body' }, 
+          React.createElement('div', {}, 
+            React.createElement('a', {
+              href: '#', 
+              style: {float: 'right', padding: '7px'}, 
+              title: 'Close tab ' + this.state.tabs[this.state.activeKey].title, 
+              onClick: () => this.remove(this.state.activeKey)
+            }, 
+              React.createElement('span', {className: 'ti-close'})
+            ), 
+            React.createElement(ReactBootstrap.Tabs, {
+              id: 'result_tabs', 
+              activeKey: this.state.activeKey, 
+              onSelect: (key) => {
+                this.setState({activeKey: key});
+              }
+            }, 
+              Object.values(this.state.tabs).map(t => 
+                React.createElement(ReactBootstrap.Tab, {title: t.title, eventKey: t.id, key: t.id}, t.content)
+              )
+            )
+          )
         )
-      )
-    );
+      ) : null;
   }
 }
