@@ -275,14 +275,12 @@ window.knn = class extends AR.BaseModule {
 
                   this.result_ta.append('{0} - Splitting dataset into train and test...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
                   this.eval_file('split', {}, (data) => {
-
                     this.result_ta.append('{0} - Calculating kNN...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
                     this.eval_file('knn', {}, (data) => {
-
-                      this.result_ta.value(data);
-                      
-                    });
-                    
+                      this.result_ta.value(data);                      
+                    }, (log) => {
+                      this.result_ta.append('{0} - {1}'.format(moment().format("YYYY-MM-DD hh:mm:ss"), log));
+                    });                    
                   });
 
                 });

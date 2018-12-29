@@ -1,57 +1,145 @@
 function list_all_datasets() {
   return new Promise((resolve, reject) => {
-    analev_call('data.get_catalogues', [], (req_id, resp) => {
-      resp = JSON.parse(resp);
-      if (resp.success) {
-        resolve(resp.data);
-      } else {
-        sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-        reject(resp.data);
-      }
+    // analev_call('data.get_catalogues', [], (req_id, resp) => {
+    //   resp = JSON.parse(resp);
+    //   if (resp.success) {
+    //     resolve(resp.data);
+    //   } else {
+    //     sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+    //     reject(resp.data);
+    //   }
+    // });
+
+    AnalevR.call({
+      'function': 'data.get_catalogues', 
+      'params': [],   
+      'onSuccess': (message) => resolve(message), 
+      'onFailed': (message) => {
+        sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+        reject(message);
+      }, 
     });
   });
 }
 
 function list_all_modules() {
   return new Promise((resolve, reject) => {
-    analev_call('module.all', [], (req_id, resp) => {
-      resp = JSON.parse(resp);
-      if (resp.success) {
-        resolve(resp.data);
-      } else {
-        sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-        reject(resp.data);
-      }
+    // analev_call('module.all', [], (req_id, resp) => {
+    //   resp = JSON.parse(resp);
+    //   if (resp.success) {
+    //     resolve(resp.data);
+    //   } else {
+    //     sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+    //     reject(resp.data);
+    //   }
+    // });
+
+    AnalevR.call({
+      'function': 'module.all', 
+      'params': [],   
+      'onSuccess': (message) => resolve(message), 
+      'onFailed': (message) => {
+        sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+        reject(message);
+      }, 
     });
   });
 }
 
 function select_dataset(id, df) {
   return new Promise((resolve, reject) => {
-    analev_call('data.read', [id, df], (req_id, resp) => {
-      resp = JSON.parse(resp);
-      if (resp.success) {
-        var csv = Papa.parse(resp.data);
-        resolve(csv.data);
-      } else {
-        sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-        reject(resp.data);
-      }
+    // analev_call('data.read', [id, df], (req_id, resp) => {
+    //   resp = JSON.parse(resp);
+    //   if (resp.success) {
+    //     var csv = Papa.parse(resp.data);
+    //     resolve(csv.data);
+    //   } else {
+    //     sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+    //     reject(resp.data);
+    //   }
+    // });
+
+    AnalevR.call({
+      'function': 'data.read', 
+      'params': [id, df],   
+      'onSuccess': (message) => resolve(Papa.parse(message).data), 
+      'onFailed': (message) => {
+        sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+        reject(message);
+      }, 
     });
   });
 }
 
 function read_module_ui_file(module_id) {
-    return new Promise((resolve, reject) => {
-      analev_call('module.file.ui.read', [module_id], function(req_id, resp) {
-          resp = JSON.parse(resp);
-          if (resp.success) {
-            resolve(resp.data);
-          } else {
-            sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-            reject(resp.data);
-          }
-      });
+  return new Promise((resolve, reject) => {
+      // analev_call('module.file.ui.read', [module_id], function(req_id, resp) {
+      //     resp = JSON.parse(resp);
+      //     if (resp.success) {
+      //       resolve(resp.data);
+      //     } else {
+      //       sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+      //       reject(resp.data);
+      //     }
+      // });
+
+    AnalevR.call({
+      'function': 'module.file.ui.read', 
+      'params': [module_id],   
+      'onSuccess': (message) => resolve(message), 
+      'onFailed': (message) => {
+        sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+        reject(message);
+      }, 
+    });
+  });
+}
+
+function session_save(data) {
+  return new Promise((resolve, reject) => {
+    // analev_call('session.save', [JSON.stringify(data)], (req_id, resp) => {
+    //   resp = JSON.parse(resp);
+    //   if (resp.success) {
+    //     resolve(resp.data);
+    //   } else {
+    //     sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+    //     reject(resp.data);
+    //   }
+    // });
+
+    AnalevR.call({
+      'function': 'session.save', 
+      'params': [JSON.stringify(data)],   
+      'onSuccess': (message) => resolve(message), 
+      'onFailed': (message) => {
+        sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+        reject(message);
+      }, 
+    });
+  });
+}
+
+function session_load() {
+  return new Promise((resolve, reject) => {
+    // analev_call('session.read', [], (req_id, resp) => {
+    //   resp = JSON.parse(resp);
+    //   if (resp.success && resp.data != "") {
+    //     resolve(resp.data);
+    //   } else {
+    //     sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+    //     reject(resp.data);
+    //   }
+    // });
+
+    AnalevR.call({
+      'function': 'session.read', 
+      'params': [],   
+      'onSuccess': (message) => resolve(message), 
+      'onFailed': (message) => {
+        sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+        reject(message);
+      }, 
+    });
   });
 }
 
@@ -84,39 +172,34 @@ window.MainApp = class extends React.Component {
   }
 
   componentDidMount(props, state) {
-    analev_call('session.read', [], (req_id, resp) => {
-      resp = JSON.parse(resp);
-      if (resp.success && resp.data != "") {
-        var saved_data = JSON.parse(resp.data);
+    session_load().then(d => {
+      var saved_data = JSON.parse(d);
 
-        this.setState((prevState, props) => {
-          return {...prevState, 
-            // ['_selected_datasets']: saved_data.datasets, 
-            // ['_selected_modules']: saved_data.modules, 
-            ['datasets']: Object.keys(saved_data.datasets).map(id => {
-                return {
-                  id: id, 
-                  idx: saved_data.datasets[id], 
-                  selected: true, 
-                  loaded: false, 
-                };
-              }).reduce((obj, d) => {
-                obj[d.id] = d;
-                return obj;
-              }, {}), 
-            ['modules']: saved_data.modules.map(id => {
-                return {
-                  id: id, 
-                  selected: true, 
-                  loaded: false,
-                };
-              }).reduce((obj, d) => {
-                obj[d.id] = d;
-                return obj;
-              }, {}), 
-          };
-        });
-      }
+      this.setState((prevState, props) => {
+        return {...prevState, 
+          ['datasets']: Object.keys(saved_data.datasets).map(id => {
+              return {
+                id: id, 
+                idx: saved_data.datasets[id], 
+                selected: true, 
+                loaded: false, 
+              };
+            }).reduce((obj, d) => {
+              obj[d.id] = d;
+              return obj;
+            }, {}), 
+          ['modules']: saved_data.modules.map(id => {
+              return {
+                id: id, 
+                selected: true, 
+                loaded: false,
+              };
+            }).reduce((obj, d) => {
+              obj[d.id] = d;
+              return obj;
+            }, {}), 
+        };
+      });
     });
   }
 
@@ -175,12 +258,7 @@ window.MainApp = class extends React.Component {
           'modules': selected_modules.map(d => d.id), 
         };
 
-        analev_call('session.save', [JSON.stringify(saved_data)], (req_id, resp) => {
-          resp = JSON.parse(resp);
-          if (resp.success) {
-            console.log('Changes saved')
-          }
-        });
+        session_save(saved_data).then(() => console.log('Changes saved'));
       }
     }
   }
@@ -692,15 +770,28 @@ window.VisualizeDataset = class extends React.Component {
                 this.state.sum_func
               );
 
-              analev_eval(cmd, (req_id, resp) => {
-                resp = JSON.parse(resp);
-                if (resp.success) {
-                  if (resp.data.type == 'image') {
-                    this.setState({ visualization_base64_image: resp.data.text });
+              // analev_eval(cmd, (req_id, resp) => {
+              //   resp = JSON.parse(resp);
+              //   if (resp.success) {
+              //     if (resp.data.type == 'image') {
+              //       this.setState({ visualization_base64_image: resp.data.text });
+              //     }
+              //   } else {
+              //     sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+              //   }
+              // });
+
+              AnalevR.eval({
+                'command': cmd,
+                'onProgress': (message) => {}, 
+                'onSuccess': (message) => {
+                  if (message.type == 'image') {
+                    this.setState({ visualization_base64_image: message.text });
                   }
-                } else {
-                  sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-                }
+                }, 
+                'onFailed': (message) => {
+                  sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+                }, 
               });
             }
           }, 'Generate Plot')

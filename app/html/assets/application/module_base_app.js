@@ -32,7 +32,7 @@ window.AR.BaseModule = class extends React.Component {
     return this.dataset().label;
   }
 
-  eval_file(filename, params, callback) {
+  eval_file(filename, params, callback, progress) {
     var files = this.props.module_info.files.filter(f => f.filename == filename);
     if (files.length == 0) {
       if (callback) callback("Error: File having name \"{0}\" is not found!".format(filename));
@@ -43,7 +43,21 @@ window.AR.BaseModule = class extends React.Component {
       return;
     }
 
-    eval_file_id(files[0].id, params, callback)
+    // eval_file_id(files[0].id, params, callback)
+
+    AnalevR.eval_file({
+      'id': files[0].id, 
+      'params': params, 
+      'onProgress': (message) => {
+        if (progress) progress(message);
+      }, 
+      'onSuccess': (message) => {
+        if (callback) callback(message);
+      }, 
+      'onFailed': (message) => {
+        if (callback) callback('Error! message: {0}'.format(message));
+      },
+    });
   }
 }
 

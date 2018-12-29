@@ -12,4 +12,4 @@ SET MySQL_USER=root
 SET MySQL_PASSWORD=toor
 SET MYSQL_DATABASE=analev
 
-Rscript .\app\worker\process.R
+Rscript .\app\worker\manager.R

@@ -21,7 +21,7 @@ fn.knn <- function() {
         if(distanceType=="euclidean"){
           euc2<-0
           for(l in 1:p){ #euclidean matrix
-            conn$LPUSH("log", paste("i=",i," of ", nx, "; j=",j," of ", ny, "; l=",l," of ", p, sep=""))
+            session.log(paste("i=",i," of ", nx, "; j=",j," of ", ny, "; l=",l," of ", p, sep=""))
 
             d1 <- (X-Y)^2
             euc2=sum(d1)
@@ -78,7 +78,7 @@ fn.knn <- function() {
     for (i in 1:ntr) {
       for (j in 1:ncts) {
         for (l in 1:nctr) {
-          conn$LPUSH("log", paste("h=", h, " of ", nts, "; i=", i, " of ", ntr, "; j=", j, " of ", ncts, "; l=", l, " of ", nctr, sep=""))
+          session.log(paste("h=", h, " of ", nts, "; i=", i, " of ", ntr, "; j=", j, " of ", ncts, "; l=", l, " of ", nctr, sep=""))
         }
       }
     }
@@ -92,3 +92,4 @@ fn.knn <- function() {
 }
 
 print(paste(capture.output(fn.knn()), collapse="\n"))
+

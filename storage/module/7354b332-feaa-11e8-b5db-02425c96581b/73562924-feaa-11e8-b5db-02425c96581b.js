@@ -178,9 +178,11 @@ window.LifeTable = class extends AR.BaseModule {
                   cens_var: this.state.cens_var, 
                   fact_var: this.state.fact_var, 
                 }, (data) => {
-                  this.result_ta.append('{0} - {1}'.format(moment().format("YYYY-MM-DD hh:mm:ss"), data));
+                  if(data.type == 'plain') 
+                    this.result_ta.append('{0} - {1}'.format(moment().format("YYYY-MM-DD hh:mm:ss"), data.text));
+
                   this.eval_file('process', {}, (data) => {
-                    this.result_ta.value(data);                    
+                    if(data.type == 'plain') this.result_ta.value(data.text);                    
                   });
                 });
               }

@@ -27,7 +27,7 @@ idle.iteration <- 0
 
 while(idle.iteration < max.idle.iteration) {
 	# Capture input
-    inp.arr <- conn$BRPOP("worker-req", 5)
+    inp.arr <- conn$BRPOP("req", 5)
 
     tryCatch({
 	    inp.req <- inp.arr[[2]]
@@ -63,6 +63,10 @@ while(idle.iteration < max.idle.iteration) {
 			    }
 
 			    return("")
+			}
+
+			session.log <- function(str.log) {
+				conn$LPUSH(paste0("log.", req.id), str.log)
 			}
 
 			working.env <- new.env()
