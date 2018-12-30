@@ -1,198 +1,303 @@
 // ui.js
 
-window.LinearRegressionOLS = class extends BaseModule {
+window.LinearRegressionOLS = class extends AR.BaseModule {
 	constructor(props) {
     super(props);
     this.state = {
       r_var: null, 
-      e_vars: null, 
+      r_var_changing: false, 
+      e_vars: [], 
+      e_vars_changing: false, 
       conf_lev: 0.95, 
+      conf_lev_changing: false, 
       tab: null, 
+      plot_tab_error: '', 
+      plot_tab_base64_image: null, 
     };
   }
+
+  variables() {
+    return this.dataset() ? this.dataset().variables : [];
+  }
   
-  get_r_var() {
-    return this.dataset().variables;
+  r_variables() {
+    return this.variables();
   }
 
-  get_e_vars() {
-    return this.dataset().variables.filter((v) => v != this.state.r_var);
+  e_variables() {
+    return _.difference(
+      this.variables(), 
+      _.concat([this.state.r_var])
+    );
   }
 
-  // componentDidMount() {
-  //   this.$row = $(this.row);
-  //   this.$row.on('resize', () => {
-  //       alert('xxx');
-  //   });
-  // }
+  componentDidUpdate() {
+    if (this.state.dataset_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['dataset_changing']: false};
+      });
+    }
 
+    if (this.state.r_var_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['r_var_changing']: false};
+      });
+    }
 
+    if (this.state.e_vars_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['e_vars_changing']: false};
+      });
+    }
+
+    if (this.state.conf_lev_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['conf_lev_changing']: false};
+      });
+    }
+  }
 
   render() {
   	return React.createElement('div', { className: 'row', ref: (el) => this.row = el }, 
       React.createElement('div', { className: 'col-lg-4 col-md-4 col-sm-12 col-xs-12' }, 
-        React.createElement(ARFormControl, {
-          onInit: (el) => {
-            this.dataset_form = el;
-          }, 
-          onAfterLoad: (el) => {
-            this.state.dataset_id = el.value();
-            if (this.r_var_form) {
-              this.r_var_form.show();
-              if (this.r_var_form.class_impl) {
-                this.r_var_form.class_impl.options(this.get_r_var().map((v) => {
-                  return {value: v, label: v}
-                }));
+        React.createElement(AR.FormGroup, {
+          title: 'Dataset',
+          help: 'Select dataset',
+          type: {
+            class: ReactBootstrap.SelectPicker,
+            props: {
+              multiple: false,
+              options: Object.values(this.datasets()).map((d) => { return { value: d.id, label: d.label } }),
+              width: 'auto',
+              'bs-events': {
+                onLoaded: (ev) => {
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['dataset_id']: ev.target.value, 
+                      ['dataset_changing']: !_.isEqual(prevState.dataset_id, ev.target.value), 
+                    }
+                  });
+                },
+                onChanged: (ev) => {
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['dataset_id']: ev.target.value, 
+                      ['dataset_changing']: true, 
+                    }
+                  });
+                }
               }
             }
           },
-          title: 'Dataset', 
-          help: 'Select dataset', 
-          class: ARSelect, 
-          class_props: {
-            options: Object.values(this.datasets()).map((d) => { return {value: d.id, label: d.label} }), 
-          }, 
         }), 
-        React.createElement(ARFormControl, {
-          onInit: (el) => {
-            this.r_var_form = el;
-          }, 
-          onAfterLoad: (el) => {
-            this.state.r_var = el.value();
-            if (this.e_vars_form) {
-              this.e_vars_form.show();
-              if (this.e_vars_form.class_impl) {
-                this.e_vars_form.class_impl.options(this.get_e_vars().map((v) => {
-                  return {value: v, label: v}
-                }));
-              }
-            }
-          }, 
-          onChange: (el) => {
-            el.props.onAfterLoad(el);
-          },
-          show: false,
-          title: 'Response Variable', 
-          help: 'Select response variable', 
-          class: ARSelect, 
-          class_props: {}
-        }), 
-        React.createElement(ARFormControl, {
-          onInit: (el) => {
-            this.e_vars_form = el;
-          }, 
-          onAfterLoad: (el) => {
-            if (! _.isEmpty(el.value())) {
-              this.btn_process.show();
-              this.state.e_vars = el.value();
-              if (this.btn_process.impl()) this.btn_process.impl().click();
-            } else {
-              this.btn_process.hide();
-              this.state.e_vars = [];
-            }
-          }, 
-          onChange: (el) => {
-            el.props.onAfterLoad(el);
-          },
-          show: false,
-          title: 'Explanatory Variable', 
-          help: 'Select explanatory variables', 
-          class: ARSelect, 
-          class_props: {
-            multiple: true
-          }
-        }), 
-        React.createElement(ARFormControl, {
-          onInit: (el) => {
-            this.confidence_slider = el;
-          }, 
-          onAfterLoad: (el) => {}, 
-          onChange: (el) => {
-            this.state.conf_lev = el.value();
 
+        !this.state.dataset_changing && this.variables().length > 0 ? 
+          React.createElement(AR.FormGroup, {
+            title: 'Response Variable', 
+            help: 'Select Response Variable', 
+            type: {
+              class: ReactBootstrap.SelectPicker, 
+              props: {
+                multiple: false, 
+                options: this.r_variables().map(v => { return {value: v, label: v} }), 
+                width: 'auto', 
+                'bs-events': {
+                  onLoaded: (ev) => {
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['r_var']: ev.target.value, 
+                        ['r_var_changing']: !_.isEqual(prevState.r_var, ev.target.value), 
+                      }
+                    });
+                  }, 
+                  onChanged: (ev) => {
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['r_var']: ev.target.value, 
+                        ['r_var_changing']: true, 
+                      }
+                    });
+                  }
+                }
+              }
+            },
+          }) : null,
+
+        !this.state.r_var_changing && this.variables().length > 0 ? 
+          React.createElement(AR.FormGroup, {
+            title: 'Explanatory Variable', 
+            help: 'Select Explanatory Variable', 
+            type: {
+              class: ReactBootstrap.SelectPicker, 
+              props: {
+                multiple: true, 
+                options: this.e_variables().map(v => { return {value: v, label: v} }), 
+                width: 'auto', 
+                'bs-events': {
+                  onLoaded: (ev) => {
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['e_vars']: [ev.target.value], 
+                        ['e_vars_changing']: !_.isEqual(prevState.e_vars, [ev.target.value]), 
+                      }
+                    });
+                  }, 
+                  onChanged: (ev, index, isSelected) => {
+                    this.setState((prevState) => {
+                      var e_vars = this.state.e_vars;
+
+                      if (isSelected) e_vars.push(this.e_variables()[index]);
+                      else _.pull(e_vars, this.e_variables()[index]);
+
+                      return {...prevState, 
+                        ['e_vars']: e_vars, 
+                        ['e_vars_changing']: true, 
+                      }
+                    });
+                  }
+                }
+              }
+            },
+          }) : null,
+
+        this.state.tab == 'predict' ? 
+          React.createElement(AR.FormGroup, {
+            title: 'Confidence Level', 
+            help: 'Slide to set Confidence Level', 
+            type: {
+              class: ReactBootstrap.Slider, 
+              props: {
+                min: 0.8, 
+                max: 0.99, 
+                step: 0.01, 
+                value: this.state.conf_lev, 
+                onChange: (value) => {
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['conf_lev']: value, 
+                      ['conf_lev_changing']: true, 
+                    }
+                  });
+                }, 
+                style: {
+                  width: '100%'
+                }
+              }
+            },
+          }) : null, 
+
+        React.createElement(AR.FormGroup, {
+          type: {
+            class: ReactBootstrap.Button, 
+            props: {
+              bsStyle: 'primary', 
+              style: {
+                width: '100%'
+              }, 
+              onClick: () => {
+                if (this.state.tab == 'summary') {
+                  this.eval_file('summary', {
+                    dataset: this.dataset_var(), 
+                    dataset_name: this.dataset_name(), 
+                    r_var: this.state.r_var, 
+                    e_vars: this.state.e_vars.join(':'), 
+                  }, (data) => {
+                    if(data.type == 'plain') this.summary_ta.value(data.text);
+                  });
+                }
+
+                else if (this.state.tab == 'predict') {
+                  this.eval_file('predict', {
+                    dataset: this.dataset_var(), 
+                    dataset_name: this.dataset_name(), 
+                    r_var: this.state.r_var, 
+                    e_vars: this.state.e_vars.join(':'), 
+                    data_filter: "", 
+                    conf_lev: this.state.conf_lev, 
+                    n: 10, 
+                  }, (data) => {
+                    if(data.type == 'plain') this.predict_ta.value(data.text);
+                  });
+                }
+
+                else if (this.state.tab == 'plot') {
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['plot_tab_base64_image']: null, 
+                      ['plot_tab_error']: null, 
+                    }
+                  });
+
+                  this.eval_file('plot', {
+                    dataset: this.dataset_var(), 
+                    dataset_name: this.dataset_name(), 
+                    r_var: this.state.r_var, 
+                    e_vars: this.state.e_vars.join(':'), 
+                    conf_lev: this.state.conf_lev, 
+                  }, (data) => {
+                    if (data.success) {
+                      if(data.type == 'image') {
+                        this.setState((prevState) => {
+                          return {...prevState, 
+                            ['plot_tab_base64_image']: data.text, 
+                          }
+                        });
+                      }
+                    } else {
+                      this.setState((prevState) => {
+                        return {...prevState, 
+                          ['plot_tab_error']: data.toString(), 
+                        }
+                      });
+                    }
+                  });
+                }
+              }
+            }, 
+            children: 'Process'
           },
-          show: true,
-          title: 'Confidence Level', 
-          help: 'Select confidence level', 
-          class: ARSlider, 
-          class_props: {
-            min: 0.8, 
-            max: 0.99, 
-            step: 0.01, 
-            value: this.state.conf_lev
-          }
-        }), 
-        React.createElement(ARFormControl, {
-          onInit: (el) => {
-            this.btn_process = el;
-          }, 
-          onClick: () => {
-            if (this.state.tab == 'summary') this.process_summarize();
-            if (this.state.tab == 'predict') this.process_predict();
-            if (this.state.tab == 'plot') this.process_plot();
-          }, 
-          show: false,
-          class: ARButton, 
-          class_props: {
-            label: 'Process', 
-          }
         }), 
       ), 
-      React.createElement('div', { className: 'col-lg-8 col-md-8 col-sm-12 col-xs-12' }, 
-        React.createElement(ARTabs, { onChange: (tabs) => {
-          this.state.tab = tabs.state.key;
 
-          if (tabs.state.key == 'predict') {
-            this.confidence_slider.show();
-          } else {
-            this.confidence_slider.hide();
+      React.createElement('div', { className: 'col-lg-8 col-md-8 col-sm-12 col-xs-12' }, 
+        React.createElement(AR.Tabs, {
+          onChange: (tabs) => {
+            this.setState((prevState) => {
+              return {...prevState, 
+                ['tab']: tabs.state.key
+              };
+            });
           }
-        } }, 
-          React.createElement(ARCodeMirror, { key: 'summary', title: 'Summary', ref: (el) => this.summary_ta = el }), 
-          React.createElement(ARCodeMirror, { key: 'predict', title: 'Predict', ref: (el) => this.predict_ta = el }), 
-          React.createElement(ARImage, { key: 'plot', title: 'Plot', ref: (el) => this.plot_ta = el })
+        }, 
+          React.createElement(ARCodeMirror, {
+            key: 'summary', 
+            selected: true, 
+            title: 'Summary', 
+            ref: (el) => this.summary_ta = el
+          }), 
+          React.createElement(ARCodeMirror, {
+            key: 'predict', 
+            title: 'Predict', 
+            ref: (el) => this.predict_ta = el
+          }), 
+
+          React.createElement('div', {
+            key: 'plot', 
+            title: 'Plot', 
+            width: '100%', 
+          }, 
+            this.state.plot_tab_base64_image !== null ? 
+              React.createElement('img', {
+                width: '100%', 
+                src: 'data:image/png;base64, ' + this.state.plot_tab_base64_image, 
+              }) : 
+
+            this.state.plot_tab_error !== null ? 
+              this.state.plot_tab_error : null
+          )
         ), 
       )
     )
-  }
-
-  process_summarize() {
-    if (!this.dataset_var() || !this.state.r_var || !this.state.e_vars || !this.dataset_name()) return false;
-
-    eval_file('summary', {
-        dataset: this.dataset_var(), 
-        r_var: this.state.r_var, 
-        e_vars: this.state.e_vars.join(':'), 
-        dataset_name: this.dataset_name()
-      }, (data) => {
-        this.summary_ta.value(data);
-      });
-  }
-
-  process_predict() {
-    eval_file('predict', {
-        dataset: this.dataset_var(), 
-        dataset_name: this.dataset_name(), 
-        data_filter: "", 
-        r_var: this.state.r_var, 
-        e_vars: this.state.e_vars.join(':'), 
-        conf_lev: this.state.conf_lev, 
-        n: 10, 
-      }, (data) => {
-        this.predict_ta.value(data);
-      });
-  }
-
-  process_plot() {
-    eval_file('plot', {
-        dataset: this.dataset_var(), 
-        dataset_name: this.dataset_name(), 
-        r_var: this.state.r_var, 
-        e_vars: this.state.e_vars.join(':'), 
-        conf_lev: this.state.conf_lev, 
-      }, (data) => {
-        this.plot_ta.set_src_base64(data);
-      });
   }
 }
 

@@ -4,7 +4,6 @@ window.LifeTable = class extends AR.BaseModule {
   constructor(props) {
     super(props);
     this.state = _.extend(this.state, {
-      variables: [],
       time_var: null, 
       time_var_changing: false, 
       interval: 1, 
@@ -16,39 +15,58 @@ window.LifeTable = class extends AR.BaseModule {
     });
   }
 
+  variables() {
+    return this.dataset() ? this.dataset().variables : [];
+  }
+
   time_variables() {
-    return this.state.variables;
+    return this.variables();
   }
 
   censor_variables() {
     return _.difference(
-      this.state.variables, 
+      this.variables(), 
       _.concat([this.state.time_var])
     );
   }
 
   factor_variables() {
     return _.concat([null], _.difference(
-      this.state.variables, 
+      this.variables(), 
       _.concat([this.state.time_var])
     ));
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (!_.isEqual(prevState.dataset_id, this.state.dataset_id)) this.setState({ dataset_changing: true });
-    if (this.state.dataset_changing) this.setState({ variables: this.dataset().variables, dataset_changing: false });
+    if (this.state.dataset_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['dataset_changing']: false};
+      });
+    }
 
-    if (!_.isEqual(prevState.time_var, this.state.time_var)) this.setState({ time_var_changing: true });
-    if (this.state.time_var_changing) this.setState({ time_var_changing: false });
+    if (this.state.time_var_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['time_var_changing']: false};
+      });
+    }
 
-    if (!_.isEqual(prevState.interval, this.state.interval)) this.setState({ interval_changing: true });
-    if (this.state.interval_changing) this.setState({ interval_changing: false });
+    if (this.state.interval_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['interval_changing']: false};
+      });
+    }
 
-    if (!_.isEqual(prevState.cens_var, this.state.cens_var)) this.setState({ cens_var_changing: true });
-    if (this.state.cens_var_changing) this.setState({ cens_var_changing: false });
+    if (this.state.cens_var_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['cens_var_changing']: false};
+      });
+    }
 
-    if (!_.isEqual(prevState.fact_var, this.state.fact_var)) this.setState({ fact_var_changing: true });
-    if (this.state.fact_var_changing) this.setState({ fact_var_changing: false });
+    if (this.state.fact_var_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['fact_var_changing']: false};
+      });
+    }
   }
 
   render() {
@@ -65,17 +83,27 @@ window.LifeTable = class extends AR.BaseModule {
               width: 'auto',
               'bs-events': {
                 onLoaded: (ev) => {
-                  this.setState({ dataset_id: ev.target.value });
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['dataset_id']: ev.target.value, 
+                      ['dataset_changing']: !_.isEqual(prevState.dataset_id, ev.target.value), 
+                    }
+                  });
                 },
                 onChanged: (ev) => {
-                  this.setState({ dataset_id: ev.target.value });
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['dataset_id']: ev.target.value, 
+                      ['dataset_changing']: true, 
+                    }
+                  });
                 }
               }
             }
           },
         }), 
 
-        !this.state.dataset_changing && this.state.variables.length > 0 ? 
+        !this.state.dataset_changing && this.variables().length > 0 ? 
           React.createElement(AR.FormGroup, {
             title: 'Survival Time Variable', 
             help: 'Select Survival Time Variable', 
@@ -87,10 +115,20 @@ window.LifeTable = class extends AR.BaseModule {
                 width: 'auto', 
                 'bs-events': {
                   onLoaded: (ev) => {
-                    this.setState({time_var: ev.target.value});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['time_var']: ev.target.value, 
+                        ['time_var_changing']: !_.isEqual(prevState.time_var, ev.target.value), 
+                      }
+                    });
                   }, 
                   onChanged: (ev) => {
-                    this.setState({time_var: ev.target.value});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['time_var']: ev.target.value, 
+                        ['time_var_changing']: true, 
+                      }
+                    });
                   }
                 }
               }
@@ -107,8 +145,14 @@ window.LifeTable = class extends AR.BaseModule {
                 type: 'text', 
                 value: this.state.interval, 
                 placeholder: 'Enter Time Interval', 
-                onChange: (e) => this.setState({interval: !_.isEmpty(e.target.value) ? 
-                  _.parseInt(e.target.value) : 0}), 
+                onChange: (e) => {
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['interval']: !_.isEmpty(e.target.value) ? _.parseInt(e.target.value) : 0, 
+                      ['interval_changing']: true, 
+                    }
+                  });
+                }, 
                 style: {
                   width: '100%'
                 }
@@ -116,7 +160,7 @@ window.LifeTable = class extends AR.BaseModule {
             },
           }) : null, 
 
-        !this.state.time_var_changing && this.state.variables.length > 0 ? 
+        !this.state.time_var_changing && this.variables().length > 0 ? 
           React.createElement(AR.FormGroup, {
             title: 'Censor Variable', 
             help: 'Select Censor Variable', 
@@ -128,17 +172,27 @@ window.LifeTable = class extends AR.BaseModule {
                 width: 'auto', 
                 'bs-events': {
                   onLoaded: (ev) => {
-                    this.setState({cens_var: ev.target.value});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['cens_var']: ev.target.value, 
+                        ['cens_var_changing']: !_.isEqual(prevState.cens_var, ev.target.value), 
+                      }
+                    });
                   }, 
                   onChanged: (ev) => {
-                    this.setState({cens_var: ev.target.value});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['cens_var']: ev.target.value, 
+                        ['cens_var_changing']: true, 
+                      }
+                    });
                   }
                 }
               }
             },
           }) : null, 
 
-        !this.state.time_var_changing && this.state.variables.length > 0 ? 
+        !this.state.time_var_changing && this.variables().length > 0 ? 
           React.createElement(AR.FormGroup, {
             title: 'Factor Variable', 
             help: 'Select Factor Variable', 
@@ -150,10 +204,20 @@ window.LifeTable = class extends AR.BaseModule {
                 width: 'auto', 
                 'bs-events': {
                   onLoaded: (ev) => {
-                    this.setState({fact_var: ev.target.value});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['fact_var']: ev.target.value, 
+                        ['fact_var_changing']: !_.isEqual(prevState.fact_var, ev.target.value), 
+                      }
+                    });
                   }, 
                   onChanged: (ev) => {
-                    this.setState({fact_var: ev.target.value});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['fact_var']: ev.target.value, 
+                        ['fact_var_changing']: true, 
+                      }
+                    });
                   }
                 }
               }
@@ -198,4 +262,3 @@ window.LifeTable = class extends AR.BaseModule {
     );
   }
 }
-

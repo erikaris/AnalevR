@@ -7,6 +7,7 @@ window.ReactDOM = require("react-dom");
 window.ReactBootstrap = require("react-bootstrap");
 window.ReactBootstrap.Select = require('@highpoint/react-bootstrap-select').default;
 window.ReactBootstrap.Slider = require('react-rangeslider').default;
+window.ReactBootstrap.MonacoEditor = require('react-monaco-editor-plus').default;
 window._ = require("lodash");
 window.moment = require('moment');
 window.pace = require('pace-js');
@@ -719,7 +720,7 @@ window.AnalevR = {
       'onSuccess': (message, request) => {
         var jResp = JSON.parse(message);
         var body = jResp['BRPOP'];
-        options.onSuccess(body[1], request);
+        options.onSuccess(body ? body[1] : null, request);
       }, 
       'onFailed': options.onFailed,  
     });
@@ -750,8 +751,8 @@ window.AnalevR = {
     }
 
     var yield_messages = (len) => {
-      if (len > 0) {
-        return new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
+        if (len > 0) {
           AnalevR.ajax_post({
             'url': window.webdis_url, 
             'message': 'LRANGE/log.{0}/0/{1}'.format(options.requestId, len-1), 
@@ -766,21 +767,19 @@ window.AnalevR = {
               resolve(len);
             }
           });
-        });
-      } else {
-        resolve(len);
-      }
+        } else {
+          resolve(len);
+        }
+      });
     }
 
     var trim = (len) => {
       if (len  > 0) {
-        return new Promise((resolve, reject) => {
-          AnalevR.ajax_post({
-            'url': window.webdis_url, 
-            'message': 'LTRIM/log.{0}/{1}/-1'.format(options.requestId, len), 
-            'contentType': 'text/plain', 
-            'onFinish': options.onFinish, 
-          });
+        AnalevR.ajax_post({
+          'url': window.webdis_url, 
+          'message': 'LTRIM/log.{0}/{1}/-1'.format(options.requestId, len), 
+          'contentType': 'text/plain', 
+          'onFinish': options.onFinish, 
         });
       } else {
         options.onFinish();

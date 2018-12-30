@@ -4,67 +4,95 @@ window.SAE_FHME = class extends AR.BaseModule {
   constructor(props) {
     super(props);
     this.state = _.extend(this.state, {
-      dataset_changing: false,
-      variables: [], 
-
       y_changing: false, 
-      y: null, 
-      
+      y: null,       
       mse_y_changing: false, 
-      mse_y: null, 
-      
+      mse_y: null,       
       x_changing: false, 
-      x: [], 
-      
+      x: [],       
       mse_x_changing: false, 
       mse_x: [], 
     });
   }
 
+  variables() {
+    return this.dataset() ? this.dataset().variables : [];
+  }
+
   y_variables() {
-    return this.state.variables;
+    return this.variables();
   }
 
   mse_y_variables() {
     return _.difference(
-      this.state.variables, 
+      this.variables(), 
       _.concat([this.state.y], this.state.x, this.state.mse_x)
     );
   }
 
   x_variables() {
     return _.difference(
-      this.state.variables, 
+      this.variables(), 
       _.concat([this.state.y], [this.state.mse_y], this.state.mse_x)
     );
   }
 
   mse_x_variables() {
     return _.difference(
-      this.state.variables, 
+      this.variables(), 
       _.concat([this.state.y], [this.state.mse_y], this.state.x)
     );
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate() {
     if (this.state.dataset_changing) {
-      this.setState({
-        variables: this.dataset().variables, 
-        dataset_changing: false,
+      this.setState((prevState) => {
+        return {...prevState, ['dataset_changing']: false};
       });
     }
 
-    if (!_.isEqual(prevState.y, this.state.y)) this.setState({y_changing: true});
-    if (this.state.y_changing) this.setState({y_changing: false});
+    if (this.state.y_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['y_changing']: false};
+      });
+    }
 
-    if (!_.isEqual(prevState.mse_y, this.state.mse_y)) this.setState({mse_y_changing: true});
-    if (this.state.mse_y_changing) this.setState({mse_y_changing: false});
+    if (this.state.mse_y_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['mse_y_changing']: false};
+      });
+    }
 
-    if (!_.isEqual(prevState.x, this.state.x)) this.setState({x_changing: true});
-    if (this.state.x_changing) this.setState({x_changing: false});
+    if (this.state.x_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['x_changing']: false};
+      });
+    }
 
-    if (!_.isEqual(prevState.mse_x, this.state.mse_x)) this.setState({mse_x_changing: true});
-    if (this.state.mse_x_changing) this.setState({mse_x_changing: false});
+    if (this.state.mse_x_changing) {
+      this.setState((prevState) => {
+        return {...prevState, ['mse_x_changing']: false};
+      });
+    }
+
+    // if (this.state.dataset_changing) {
+    //   this.setState({
+    //     variables: this.dataset().variables, 
+    //     dataset_changing: false,
+    //   });
+    // }
+
+    // if (!_.isEqual(prevState.y, this.state.y)) this.setState({y_changing: true});
+    // if (this.state.y_changing) this.setState({y_changing: false});
+
+    // if (!_.isEqual(prevState.mse_y, this.state.mse_y)) this.setState({mse_y_changing: true});
+    // if (this.state.mse_y_changing) this.setState({mse_y_changing: false});
+
+    // if (!_.isEqual(prevState.x, this.state.x)) this.setState({x_changing: true});
+    // if (this.state.x_changing) this.setState({x_changing: false});
+
+    // if (!_.isEqual(prevState.mse_x, this.state.mse_x)) this.setState({mse_x_changing: true});
+    // if (this.state.mse_x_changing) this.setState({mse_x_changing: false});
   }
 
   render() {
@@ -81,15 +109,19 @@ window.SAE_FHME = class extends AR.BaseModule {
               width: 'auto', 
               'bs-events': {
                 onLoaded: (ev) => {
-                  this.setState({
-                    dataset_id: ev.target.value, 
-                    dataset_changing: true,
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['dataset_id']: ev.target.value, 
+                      ['dataset_changing']: !_.isEqual(prevState.dataset_id, ev.target.value), 
+                    }
                   });
                 }, 
                 onChanged: (ev) => {
-                  this.setState({
-                    dataset_id: ev.target.value, 
-                    dataset_changing: true,
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['dataset_id']: ev.target.value, 
+                      ['dataset_changing']: true, 
+                    }
                   });
                 }
               }
@@ -97,7 +129,7 @@ window.SAE_FHME = class extends AR.BaseModule {
           },
         }), 
 
-        !this.state.dataset_changing && this.state.variables.length > 0 ? 
+        !this.state.dataset_changing && this.variables().length > 0 ? 
           React.createElement(AR.FormGroup, {
             title: 'Direct Estimator', 
             help: 'Vector of direct estimation for each area', 
@@ -109,10 +141,20 @@ window.SAE_FHME = class extends AR.BaseModule {
                 width: 'auto', 
                 'bs-events': {
                   onLoaded: (ev) => {
-                    this.setState({y: ev.target.value});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['y']: ev.target.value, 
+                        ['y_changing']: !_.isEqual(prevState.y, ev.target.value), 
+                      }
+                    });
                   }, 
                   onChanged: (ev) => {
-                    this.setState({y: ev.target.value});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['y']: ev.target.value, 
+                        ['y_changing']: true, 
+                      }
+                    });
                   }
                 }
               }
@@ -120,7 +162,7 @@ window.SAE_FHME = class extends AR.BaseModule {
           }) : null,
 
         !this.state.y_changing && !this.state.x_changing && !this.state.mse_x_changing && 
-        this.state.variables.length > 0 ? 
+        this.mse_y_variables().length > 0 ? 
           React.createElement(AR.FormGroup, {
             title: 'MSE of y', 
             help: 'Vector of design variance of variable y', 
@@ -132,10 +174,20 @@ window.SAE_FHME = class extends AR.BaseModule {
                 width: 'auto', 
                 'bs-events': {
                   onLoaded: (ev) => {
-                    this.setState({mse_y: ev.target.value});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['mse_y']: ev.target.value, 
+                        ['mse_y_changing']: !_.isEqual(prevState.mse_y, ev.target.value), 
+                      }
+                    });
                   }, 
                   onChanged: (ev) => {
-                    this.setState({mse_y: ev.target.value});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['mse_y']: ev.target.value, 
+                        ['mse_y_changing']: true, 
+                      }
+                    });
                   }
                 }
               }
@@ -143,7 +195,7 @@ window.SAE_FHME = class extends AR.BaseModule {
           }) : null,
 
         !this.state.y_changing && !this.state.mse_y_changing && !this.state.mse_x_changing && 
-        this.state.variables.length > 0 ? 
+        this.x_variables().length > 0 ? 
           React.createElement(AR.FormGroup, {
             title: 'Auxiliary variables', 
             help: 'matrix of auxiliary variable from another survey. It may more includes more than one column.', 
@@ -155,7 +207,12 @@ window.SAE_FHME = class extends AR.BaseModule {
                 width: 'auto', 
                 'bs-events': {
                   onLoaded: (ev) => {
-                    this.setState({x: [ev.target.value]});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['x']: [ev.target.value], 
+                        ['x_changing']: !_.isEqual(prevState.x, [ev.target.value]), 
+                      }
+                    });
                   }, 
                   onChanged: (ev, index, isSelected) => {
                     var x = this.state.x;
@@ -163,7 +220,12 @@ window.SAE_FHME = class extends AR.BaseModule {
                     if (isSelected) x.push(this.x_variables()[index]);
                     else _.pull(x, this.x_variables()[index]);
 
-                    this.setState({x: x});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['x']: x, 
+                        ['x_changing']: true, 
+                      }
+                    });
                   }
                 }
               }
@@ -171,7 +233,7 @@ window.SAE_FHME = class extends AR.BaseModule {
           }) : null,
 
         !this.state.y_changing && !this.state.mse_y_changing && !this.state.x_changing && 
-        this.state.variables.length > 0 ? 
+        this.mse_x_variables().length > 0 ? 
           React.createElement(AR.FormGroup, {
             title: 'MSE of Auxiliary variables', 
             help: 'matrix of variance of variable x. It may more includes more than one column.', 
@@ -183,7 +245,12 @@ window.SAE_FHME = class extends AR.BaseModule {
                 width: 'auto', 
                 'bs-events': {
                   onLoaded: (ev) => {
-                    this.setState({mse_x: [ev.target.value]});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['mse_x']: [ev.target.value], 
+                        ['mse_x_changing']: !_.isEqual(prevState.mse_x, [ev.target.value]), 
+                      }
+                    });
                   }, 
                   onChanged: (ev, index, isSelected) => {
                     var mse_x = this.state.mse_x;
@@ -191,7 +258,12 @@ window.SAE_FHME = class extends AR.BaseModule {
                     if (isSelected) mse_x.push(this.mse_x_variables()[index]);
                     else _.pull(mse_x, this.mse_x_variables()[index]);
 
-                    this.setState({mse_x: mse_x});
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['mse_x']: mse_x, 
+                        ['mse_x_changing']: true, 
+                      }
+                    });
                   }
                 }
               }
@@ -218,7 +290,7 @@ window.SAE_FHME = class extends AR.BaseModule {
                 }, (data) => {
                   this.estimation_ta.append('{0} - Analyzing...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
                   this.eval_file('fhme', {}, (data) => {
-                    this.estimation_ta.value(data);                    
+                    this.estimation_ta.value(data.text);                    
                   });
                 });
               }

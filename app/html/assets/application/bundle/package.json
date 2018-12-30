@@ -22,6 +22,7 @@
     "react": "^16.4.2",
     "react-bootstrap": "^0.32.1",
     "react-dom": "^16.4.2",
+    "react-monaco-editor-plus": "^1.0.5",
     "react-rangeslider": "^2.2.0",
     "sweetalert": "^2.1.0",
     "uri-js": "^4.2.2",

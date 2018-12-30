@@ -5,22 +5,14 @@ window.knn = class extends AR.BaseModule {
     super(props);
 
     this.state = _.extend(this.state, {
-      dataset_changing: false,
-
-      knn_class_variables: [], 
       knn_class_changing: false, 
       knn_class: null, 
-
-      knn_variables_variables: [], 
       knn_variables_changing: false, 
       knn_variables: [], 
-
       knn_per_changing: false, 
       knn_per: 80, 
-
       knn_k_changing: false, 
       knn_k: 3, 
-
       knn_distance_options: [
         {value: 'euclidean', label: 'Euclidean', selected: true}, 
         {value: 'manhattan', label: 'Manhattan'}, 
@@ -28,53 +20,64 @@ window.knn = class extends AR.BaseModule {
         {value: 'mamming', label: 'Hamming'}
       ], 
       knn_distance_changing: false, 
-      knn_distance: 'euclidean',
-      
+      knn_distance: 'euclidean',       
       knn_power_mink_changing: false,
       knn_power_mink: 2, 
     });
   }
 
+  variables() {
+    return this.dataset() ? this.dataset().variables : [];
+  }
+
+  knn_class_variables() {
+    return this.variables();
+  }
+
+  knn_variables_variables() {
+    return this.variables().filter((v) => v != this.state.knn_class);
+  }
+
   componentDidUpdate(prevProps, prevState) {
     if (this.state.dataset_changing) {
-      this.setState({
-        knn_class_variables: this.dataset().variables, 
-        dataset_changing: false,
+      this.setState((prevState) => {
+        return {...prevState, ['dataset_changing']: false};
       });
     }
 
     if (this.state.knn_class_changing) {
-      this.setState({
-        knn_variables_variables: this.dataset().variables.filter((v) => v != this.state.knn_class), 
-        knn_class_changing: false,
+      this.setState((prevState) => {
+        return {...prevState, ['knn_class_changing']: false};
       });
     }
 
     if (this.state.knn_variables_changing) {
-
+      this.setState((prevState) => {
+        return {...prevState, ['knn_variables_changing']: false};
+      });
     }
 
     if (this.state.knn_per_changing) {
-      this.setState({
-        knn_per_changing: false,
+      this.setState((prevState) => {
+        return {...prevState, ['knn_per_changing']: false};
       });
     }
 
     if (this.state.knn_k_changing) {
-      this.setState({
-        knn_k_changing: false,
+      this.setState((prevState) => {
+        return {...prevState, ['knn_k_changing']: false};
       });
     }
 
     if (this.state.knn_distance_changing) {
-      this.setState({
-        knn_distance_changing: false,
+      this.setState((prevState) => {
+        return {...prevState, ['knn_distance_changing']: false};
       });
     }
 
     if (this.state.knn_power_mink_changing) {
-      this.setState({
-        knn_power_mink_changing: false,
+      this.setState((prevState) => {
+        return {...prevState, ['knn_power_mink_changing']: false};
       });
     }
   }
@@ -89,19 +92,23 @@ window.knn = class extends AR.BaseModule {
             class: ReactBootstrap.SelectPicker, 
             props: {
               multiple: false, 
-              options: Object.values(this.datasets()).map((d) => { return {value: d.id, label: d.label} }), 
+              options: Object.values(this.datasets()).map((d) => { return { value: d.id, label: d.label } }),
               width: 'auto', 
               'bs-events': {
                 onLoaded: (ev) => {
-                  this.setState({
-                    dataset_id: ev.target.value, 
-                    dataset_changing: true,
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['dataset_id']: ev.target.value, 
+                      ['dataset_changing']: !_.isEqual(prevState.dataset_id, ev.target.value), 
+                    }
                   });
-                }, 
+                },
                 onChanged: (ev) => {
-                  this.setState({
-                    dataset_id: ev.target.value, 
-                    dataset_changing: true,
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['dataset_id']: ev.target.value, 
+                      ['dataset_changing']: true, 
+                    }
                   });
                 }
               }
@@ -109,7 +116,7 @@ window.knn = class extends AR.BaseModule {
           },
         }), 
 
-        !this.state.dataset_changing && this.state.knn_class_variables.length > 0 ? 
+        !this.state.dataset_changing && this.variables().length > 0 ? 
           React.createElement(AR.FormGroup, {
             title: 'Class', 
             help: 'Select class variable', 
@@ -117,19 +124,23 @@ window.knn = class extends AR.BaseModule {
               class: ReactBootstrap.SelectPicker, 
               props: {
                 multiple: false, 
-                options: this.state.knn_class_variables.map(v => { return {value: v, label: v} }), 
+                options: this.knn_class_variables().map(v => { return {value: v, label: v} }), 
                 width: 'auto', 
                 'bs-events': {
                   onLoaded: (ev) => {
-                    this.setState({
-                      knn_class: ev.target.value, 
-                      knn_class_changing: true, 
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['knn_class']: ev.target.value, 
+                        ['knn_class_changing']: !_.isEqual(prevState.knn_class, ev.target.value), 
+                      }
                     });
                   }, 
                   onChanged: (ev) => {
-                    this.setState({
-                      knn_class: ev.target.value,  
-                      knn_class_changing: true, 
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['knn_class']: ev.target.value, 
+                        ['knn_class_changing']: true, 
+                      }
                     });
                   }
                 }
@@ -137,7 +148,7 @@ window.knn = class extends AR.BaseModule {
             },
           }) : null,
         
-        !this.state.knn_class_changing && this.state.knn_variables_variables.length > 0 ? 
+        !this.state.knn_class_changing && this.variables().length > 0 ? 
           React.createElement(AR.FormGroup, {
             title: 'Variables', 
             help: 'Select variable(s)', 
@@ -145,19 +156,23 @@ window.knn = class extends AR.BaseModule {
               class: ReactBootstrap.SelectPicker, 
               props: {
                 multiple: true, 
-                options: this.state.knn_variables_variables.map(v => { return {value: v, label: v} }), 
+                options: this.knn_variables_variables().map(v => { return {value: v, label: v} }), 
                 width: 'auto', 
                 'bs-events': {
                   onLoaded: (ev) => {
-                    this.setState({
-                      // knn_variables: ev.target.value, 
-                      knn_variables_changing: true, 
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['knn_variables']: [ev.target.value], 
+                        ['knn_variables_changing']: !_.isEqual(prevState.knn_variables, [ev.target.value]), 
+                      }
                     });
                   }, 
                   onChanged: (ev) => {
-                    this.setState({
-                      // knn_variables: ev.target.value,  
-                      knn_variables_changing: true, 
+                    this.setState((prevState) => {
+                      return {...prevState, 
+                        ['knn_variables']: ev.target.value, 
+                        ['knn_variables_changing']: true, 
+                      }
                     });
                   }
                 }
@@ -174,10 +189,14 @@ window.knn = class extends AR.BaseModule {
               min: 0, 
               max: 100, 
               value: this.state.knn_per, 
-              onChange: (value) => this.setState({
-                knn_per: value, 
-                knn_per_changing: true, 
-              }), 
+              onChange: (value) => {
+                this.setState((prevState) => {
+                  return {...prevState, 
+                    ['knn_per']: value, 
+                    ['knn_per_changing']: true, 
+                  }
+                });
+              }, 
               style: {
                 width: '100%'
               }
@@ -194,10 +213,14 @@ window.knn = class extends AR.BaseModule {
               type: 'text', 
               value: this.state.knn_k, 
               placeholder: 'Enter number of K', 
-              onChange: (e) => this.setState({
-                knn_k: e.target.value, 
-                knn_k_changing: true, 
-              }), 
+              onChange: (e) => {
+                this.setState((prevState) => {
+                  return {...prevState, 
+                    ['knn_k']: e.target.value, 
+                    ['knn_k_changing']: true, 
+                  }
+                });
+              }, 
               style: {
                 width: '100%'
               }
@@ -216,15 +239,19 @@ window.knn = class extends AR.BaseModule {
               width: 'auto', 
               'bs-events': {
                 onLoaded: (ev) => {
-                  this.setState({
-                    knn_distance: ev.target.value, 
-                    knn_distance_changing: true,
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['knn_distance']: ev.target.value, 
+                      ['knn_distance_changing']: !_.isEqual(prevState.knn_distance, ev.target.value), 
+                    }
                   });
                 }, 
                 onChanged: (ev) => {
-                  this.setState({
-                    knn_distance: ev.target.value, 
-                    knn_distance_changing: true,
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['knn_distance']: ev.target.value, 
+                      ['knn_distance_changing']: true, 
+                    }
                   });
                 }
               }
@@ -242,10 +269,14 @@ window.knn = class extends AR.BaseModule {
                 type: 'text', 
                 value: this.state.knn_power_mink, 
                 placeholder: 'Enter the power of minkowski', 
-                onChange: (e) => this.setState({
-                  knn_power_mink: e.target.value, 
-                  knn_power_mink_changing: true, 
-                }), 
+                onChange: (e) => {
+                  this.setState((prevState) => {
+                    return {...prevState, 
+                      ['knn_power_mink']: e.target.value, 
+                      ['knn_power_mink_changing']: true, 
+                    }
+                  });
+                }, 
                 style: {
                   width: '100%'
                 }
@@ -297,7 +328,3 @@ window.knn = class extends AR.BaseModule {
     )
   }
 }
-
-
-
-
