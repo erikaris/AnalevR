@@ -32,7 +32,33 @@ window.AR.BaseModule = class extends React.Component {
     return this.dataset().label;
   }
 
-  eval_file(filename, params, callback, progress) {
+  eval_file(filename, params = {}, events = {}) {
+    var events = _.extend({
+      'onProgress': (message) => {}, 
+      'onSuccess': (message) => {}, 
+      'onFailed': (message) => {}
+    }, events);
+
+    var files = this.props.module_info.files.filter(f => f.filename == filename);
+    if (files.length == 0) {
+      events.onFailed("Error: File having name \"{0}\" is not found!".format(filename));
+      return;
+    } 
+    else if (files.length > 1) {
+      events.onFailed("Error: There are multiple file having name \"{0}\". Rename it into different name!".format(filename));
+      return;
+    }
+
+    AnalevR.eval_file({
+      'id': files[0].id, 
+      'params': params, 
+      'onProgress': events.onProgress, 
+      'onSuccess': events.onSuccess, 
+      'onFailed': events.onFailed,
+    });
+  }
+
+  /*eval_file(filename, params, callback, progress) {
     var files = this.props.module_info.files.filter(f => f.filename == filename);
     if (files.length == 0) {
       if (callback) callback("Error: File having name \"{0}\" is not found!".format(filename));
@@ -42,8 +68,6 @@ window.AR.BaseModule = class extends React.Component {
       if (callback) callback("Error: There are multiple file having name \"{0}\". Rename it into different name!".format(filename));
       return;
     }
-
-    // eval_file_id(files[0].id, params, callback)
 
     AnalevR.eval_file({
       'id': files[0].id, 
@@ -58,7 +82,7 @@ window.AR.BaseModule = class extends React.Component {
         if (callback) callback('Error! message: {0}'.format(message));
       },
     });
-  }
+  }*/
 }
 
 window.AR.FormGroup = class extends React.Component {

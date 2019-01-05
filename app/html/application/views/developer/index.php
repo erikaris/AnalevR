@@ -89,130 +89,247 @@
 	    }
 	}, webix.ui.view);
 
+	function all_modules() {
+	    return new Promise((resolve, reject) => {
+		    AnalevR.call({
+				'function': 'module.all.owner', 
+				'params': [],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
+		    });
+		});
+	}
+
 	function add_module(name, label) {
 	    return new Promise((resolve, reject) => {
-	    	analev_call('module.add', [name, label], function(req_id, resp) {
-		        resp = JSON.parse(resp);
-		        if (resp.success) {
-	        		resolve(resp.data);
-		        } else {
-		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-		        	reject(resp.message);
-		        }
+	    	// analev_call('module.add', [name, label], function(req_id, resp) {
+		    //     resp = JSON.parse(resp);
+		    //     if (resp.success) {
+	     //    		resolve(resp.data);
+		    //     } else {
+		    //     	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		    //     	reject(resp.message);
+		    //     }
+		    // });
+
+		    AnalevR.call({
+				'function': 'module.add', 
+				'params': [name, label],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
 		    });
 		});
 	}
 
 	function rename_module(id, name, label) {
 	    return new Promise((resolve, reject) => {
-	    	analev_call('module.rename', [id, name, label], function(req_id, resp) {
-		        resp = JSON.parse(resp);
-		        if (resp.success) {
-	        		resolve(resp.data);
-		        } else {
-		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-		        	reject(resp.message);
-		        }
+	    	// analev_call('module.rename', [id, name, label], function(req_id, resp) {
+		    //     resp = JSON.parse(resp);
+		    //     if (resp.success) {
+	     //    		resolve(resp.data);
+		    //     } else {
+		    //     	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		    //     	reject(resp.message);
+		    //     }
+		    // });
+
+		    AnalevR.call({
+				'function': 'module.rename', 
+				'params': [id, name, label],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
 		    });
 		});
 	}
 
 	function remove_module(id) {
 		return new Promise((resolve, reject) => {
-			analev_call('module.remove', [id], function(req_id, resp) {
-		        resp = JSON.parse(resp);
-		        if (resp.success) {
-	        		resolve(resp.data);
-		        } else {
-		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-		        	reject(resp.message);
-		        }
+			// analev_call('module.remove', [id], function(req_id, resp) {
+		 //        resp = JSON.parse(resp);
+		 //        if (resp.success) {
+	  //       		resolve(resp.data);
+		 //        } else {
+		 //        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		 //        	reject(resp.message);
+		 //        }
+		 //    });
+
+		 	AnalevR.call({
+				'function': 'module.remove', 
+				'params': [id],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
 		    });
 		});
 	}
 
 	function list_module_files(module_id) {
 		return new Promise((resolve, reject) => {
-			analev_call('module.files', [module_id], function(req_id, resp) {
-		        resp = JSON.parse(resp);
-		        if (resp.success) {
-	        		resolve(resp.data);
-		        } else {
-		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-		        	reject(resp.message);
-		        }
+		    AnalevR.call({
+				'function': 'module.files', 
+				'params': [module_id],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
 		    });
 		});
 	}
 
 	function add_r_file(module_id, name) {
 		return new Promise((resolve, reject) => {
-			analev_call('module.file.add.r', [module_id, name], function(req_id, resp) {
-		        resp = JSON.parse(resp);
-		        if (resp.success) {
-	        		resolve(resp.data);
-		        } else {
-		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-		        	reject(resp.message);
-		        }
+			// analev_call('module.file.add.r', [module_id, name], function(req_id, resp) {
+		 //        resp = JSON.parse(resp);
+		 //        if (resp.success) {
+	  //       		resolve(resp.data);
+		 //        } else {
+		 //        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		 //        	reject(resp.message);
+		 //        }
+		 //    });
+
+		 	AnalevR.call({
+				'function': 'module.file.add.r', 
+				'params': [module_id, name],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
 		    });
 		});
 	}
 
 	function rename_r_file(id, name) {
 		return new Promise((resolve, reject) => {
-			analev_call('module.file.rename.r', [id, name], function(req_id, resp) {
-		        resp = JSON.parse(resp);
-		        if (resp.success) {
-	        		resolve(resp.data);
-		        } else {
-		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-		        	reject(resp.message);
-		        }
+			// analev_call('module.file.rename.r', [id, name], function(req_id, resp) {
+		 //        resp = JSON.parse(resp);
+		 //        if (resp.success) {
+	  //       		resolve(resp.data);
+		 //        } else {
+		 //        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		 //        	reject(resp.message);
+		 //        }
+		 //    });
+
+		 	AnalevR.call({
+				'function': 'module.file.rename.r', 
+				'params': [id, name],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
 		    });
 		});
 	}
 
-
-
 	function read_ui_file(module_id) {
 		return new Promise((resolve, reject) => {
-			analev_call('module.file.ui.read', [module_id], function(req_id, resp) {
-		        resp = JSON.parse(resp);
-		        if (resp.success) {
-	        		resolve(resp.data);
-		        } else {
-		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-		        	reject(resp.message);
-		        }
+			// analev_call('module.file.ui.read', [module_id], function(req_id, resp) {
+		 //        resp = JSON.parse(resp);
+		 //        if (resp.success) {
+	  //       		resolve(resp.data);
+		 //        } else {
+		 //        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		 //        	reject(resp.message);
+		 //        }
+		 //    });
+
+		 	AnalevR.call({
+				'function': 'module.file.ui.read', 
+				'params': [module_id],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
 		    });
 		});
 	}
 
 	function read_file(id) {
 		return new Promise((resolve, reject) => {
-			analev_call('module.file.id.read', [id], function(req_id, resp) {
-		        resp = JSON.parse(resp);
-		        if (resp.success) {
-	        		resolve(resp.data);
-		        } else {
-		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-		        	reject(resp.message);
-		        }
+			// analev_call('module.file.id.read', [id], function(req_id, resp) {
+		 //        resp = JSON.parse(resp);
+		 //        if (resp.success) {
+	  //       		resolve(resp.data);
+		 //        } else {
+		 //        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		 //        	reject(resp.message);
+		 //        }
+		 //    });
+
+		 	AnalevR.call({
+				'function': 'module.file.id.read', 
+				'params': [id],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
+		    });
+		});
+	}
+
+	function save_file(file_id, curr_code) {
+		return new Promise((resolve, reject) => {
+			// analev_call('module.file.save', [file_id, curr_code], function(_req_id, resp) {
+   //              var resp = JSON.parse(resp);
+   //              if (resp.success) {
+   //                  $$('list_modules').updateItem(file_id, {
+   //                      value: '{0}.{1}'.format(file.filename, file.extension),
+   //                      content: curr_code,
+   //                      remote_content: curr_code
+   //                  });
+   //              }
+   //          });
+
+		 	AnalevR.call({
+				'function': 'module.file.save', 
+				'params': [file_id, curr_code],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
 		    });
 		});
 	}
 
 	function remove_file(id) {
 		return new Promise((resolve, reject) => {
-			analev_call('module.file.remove', [id], function(req_id, resp) {
-		        resp = JSON.parse(resp);
-		        if (resp.success) {
-	        		resolve(resp.data);
-		        } else {
-		        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
-		        	reject(resp.message);
-		        }
+			// analev_call('module.file.remove', [id], function(req_id, resp) {
+		 //        resp = JSON.parse(resp);
+		 //        if (resp.success) {
+	  //       		resolve(resp.data);
+		 //        } else {
+		 //        	sweetAlert('Oops...', 'An error happened with message "' + resp.data + '"', "error");
+		 //        	reject(resp.message);
+		 //        }
+		 //    });
+
+		 	AnalevR.call({
+				'function': 'module.file.remove', 
+				'params': [id],    
+				'onSuccess': resolve, 
+				'onFailed': (message) => {
+					sweetAlert('Oops...', 'An error happened with message "' + message + '"', "error");
+		        	reject(message);
+				}, 
 		    });
 		});
 	}
@@ -273,15 +390,12 @@
 	                            var file = $$('list_modules').getItem(file_id);
 	                            var curr_code = $$('editor').getValue();
 
-	                            analev_call('module.file.save', [file_id, curr_code], function(_req_id, resp) {
-	                                var resp = JSON.parse(resp);
-	                                if (resp.success) {
-	                                    $$('list_modules').updateItem(file_id, {
-	                                        value: '{0}.{1}'.format(file.filename, file.extension),
-	                                        content: curr_code,
-	                                        remote_content: curr_code
-	                                    });
-	                                }
+	                            save_file(file_id, curr_code).then((f) => {
+	                            	$$('list_modules').updateItem(file_id, {
+                                        value: '{0}.{1}'.format(f.filename, f.extension),
+                                        content: curr_code,
+                                        remote_content: curr_code
+                                    });
 	                            });
 	                        }
 	                    }, {
@@ -627,56 +741,39 @@
 	    $$("list_modules_menu").attachTo($$("list_modules"));
 
 	    // Load all module(s)
-	    analev_call('module.all.owner', [], function(req_id, resp) {
-	        resp = JSON.parse(resp);
-	        if (resp.success) {
-	            resp.data.forEach(function(d) {
-	                $$('list_modules').data.add({
-	                    id: d.id,
-	                    name: d.name, 
-	                    label: d.label, 
-	                    value: d.label,
-	                    open: true,
-	                }, -1, 'root');
+	    all_modules().then((modules) => {
+            modules.forEach((d) => {
+                $$('list_modules').data.add({
+                    id: d.id,
+                    name: d.name, 
+                    label: d.label, 
+                    value: d.label,
+                    open: true,
+                }, -1, 'root');
 
-	                // Load file(s) associated with each module
-	                analev_call('module.files', [d.id], function(req_id, resp) {
-	                    resp = JSON.parse(resp);
-	                    if (resp.success) {
-	                        resp.data.forEach(function(d) {
-	                            $$('list_modules').data.add({
-	                                id: d.id,
-	                                value: '{0}.{1}'.format(d.filename, d.extension),
-	                                filename: d.filename,
-	                                extension: d.extension,
-	                            }, -1, d.module_id);
+                list_module_files(d.id).then((files) => {
+                	files.forEach((f) => {
+                        $$('list_modules').data.add({
+                            id: f.id,
+                            value: '{0}.{1}'.format(f.filename, f.extension),
+                            filename: f.filename,
+                            extension: f.extension,
+                        }, -1, f.module_id);
 
-	                            // Map filename to file_id
-	                            if (!('filename_fileid_map' in window)) window.filename_fileid_map = {};
-	                            window.filename_fileid_map[d.filename] = d.id;
+                        // Map filename to file_id
+                        if (!('filename_fileid_map' in window)) window.filename_fileid_map = {};
+                        window.filename_fileid_map[f.filename] = f.id;
 
-	                            // Load content of each file
-	                            var req_id = uuid();
-	                            if (!('fileid_reqid_map' in window)) window.fileid_reqid_map = {};
-	                            window.fileid_reqid_map[req_id] = d.id;
-
-	                            analev_call('module.file.read', [d.module_id, d.id + '.' + d.extension], function(_req_id, resp) {
-	                                var resp = JSON.parse(resp);
-	                                if (resp.success) {
-	                                    var file_id = window.fileid_reqid_map[_req_id];
-	                                    $$('list_modules').updateItem(file_id, {
-	                                        remote_content: resp.data,
-	                                        content: resp.data
-	                                    });
-	                                    delete window.fileid_reqid_map[_req_id];
-	                                }
-	                            }, req_id);
-	                        });
-	                    }
-	                });
-	            });
-	        }
-	    });
+                        read_file(f.id).then((c) => {
+                        	$$('list_modules').updateItem(c.id, {
+                                remote_content: c.content,
+                                content: c.content
+                            });
+                        })
+                	});
+                })
+        	});
+        });
 	});
 </script>
 

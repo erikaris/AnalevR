@@ -280,18 +280,27 @@ window.SAE_FHME = class extends AR.BaseModule {
               }, 
               onClick: () => {
                 this.estimation_ta.value('{0} - Initializing ...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
-                this.eval_file('init', {
+                
+                this.eval_file('server', {
                   dataset: this.dataset_var(), 
                   dataset_name: this.dataset_name(), 
                   y: this.state.y, 
                   mse_y: this.state.mse_y, 
                   x: this.state.x, 
                   mse_x: this.state.mse_x, 
-                }, (data) => {
-                  this.estimation_ta.append('{0} - Analyzing...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
-                  this.eval_file('fhme', {}, (data) => {
-                    this.estimation_ta.value(data.text);                    
-                  });
+                }, {
+                  'onProgress': (message) => {
+                    this.estimation_ta.append(log);
+                  }, 
+                  'onSuccess': (data) => {
+                    if(data.type == 'plain') {
+                      this.estimation_ta.append('\n{0} - Result:'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
+                      this.estimation_ta.append(data.text);
+                    }
+                  }, 
+                  'onFailed': (message) => {
+                    this.estimation_ta.append(message);
+                  }
                 });
               }
             }, 
@@ -307,6 +316,8 @@ window.SAE_FHME = class extends AR.BaseModule {
     );
   }
 }
+
+
 
 
 

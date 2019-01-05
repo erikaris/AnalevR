@@ -8,14 +8,9 @@ process.dataframe <- function(resp) {
 process.dataframe.to.csv <- function(resp) {
     library(readr)
 
-    write.table(resp, row.names=FALSE, na="", sep=",", file=".tmp.csv")
-    return(read_file(".tmp.csv"))
-
-    # zz <- textConnection("foo1", "w") 
-    # write.csv(resp, zz) 
-    # csv.str <- textConnectionValue(zz) 
-    # close(zz)
-    # return(csv.str)
+    files = tempfile("df", fileext = c(".csv"))
+    write.table(resp, row.names=FALSE, na="", sep=",", file=files[[1]])
+    return(read_file(files[[1]]))
 }
 
 process.response <- function(resp, err_code) {

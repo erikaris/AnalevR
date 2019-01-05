@@ -13,12 +13,14 @@ for i in range(100):
     session_id = config.sessions[1]
     request_id = str(uuid4())
     req = {
-        'sess': session_id, 'id': request_id, 'func': 'module.file.name.eval',
-        'args': ["summary", {
+        'sess': session_id, 'id': request_id, 'func': 'module.file.id.eval',
+        'args': ["c5c9286e-0ff8-11e9-b7fa-1008b155cbfd", {
             "dataset":"df{}".format(i),
             "dataset_name": "diamonds.csv",
-            "r_var":"price",
-            "e_vars":"carat:clarity"
+            "time_var": "price",
+            "interval": "1",
+            "cens_var": "carat",
+            "fact_var": "",
         }]
     }
     resp = None

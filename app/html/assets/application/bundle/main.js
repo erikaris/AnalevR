@@ -798,8 +798,8 @@ window.AnalevR = {
       'requestId': uuid(),       
       'onProgress': (message) => {}, 
       'onFinish': () => {}, 
-      'onSuccess': (responseText, request) => {}, 
-      'onFailed': (responseText, request) => {}, 
+      'onSuccess': (responseText) => {}, 
+      'onFailed': (responseText) => {}, 
     }, options);
 
     var isFinished = false;

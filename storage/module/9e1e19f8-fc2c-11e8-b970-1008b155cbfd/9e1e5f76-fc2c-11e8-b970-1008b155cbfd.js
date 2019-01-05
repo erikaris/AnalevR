@@ -294,7 +294,7 @@ window.knn = class extends AR.BaseModule {
               }, 
               onClick: () => {
                 this.result_ta.value('{0} - Initializing ...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
-                this.eval_file('init', {
+                this.eval_file('server', {
                   dataset: this.dataset_var(), 
                   dataset_name: this.dataset_name(), 
                   per: this.state.knn_per, 
@@ -304,16 +304,23 @@ window.knn = class extends AR.BaseModule {
                   k: this.state.knn_k, 
                 }, (data) => {
 
-                  this.result_ta.append('{0} - Splitting dataset into train and test...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
-                  this.eval_file('split', {}, (data) => {
-                    this.result_ta.append('{0} - Calculating kNN...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
-                    this.eval_file('knn', {}, (data) => {
-                      this.result_ta.value(data);                      
-                    }, (log) => {
-                      this.result_ta.append('{0} - {1}'.format(moment().format("YYYY-MM-DD hh:mm:ss"), log));
-                    });                    
-                  });
+                  // this.result_ta.append('{0} - Splitting dataset into train and test...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
+                  // this.eval_file('split', {}, (data) => {
+                  //   this.result_ta.append('{0} - Calculating kNN...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
+                  //   this.eval_file('knn', {}, (data) => {
+                  //     this.result_ta.value(data);                      
+                  //   }, (log) => {
+                  //     this.result_ta.append('{0} - {1}'.format(moment().format("YYYY-MM-DD hh:mm:ss"), log));
+                  //   });                    
+                  // });
 
+                  if(data.type == 'plain') {
+                    this.result_ta.append('\n{0} - Result:'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
+                    this.result_ta.append(data.text);
+                  }
+
+                }, (log) => {
+                  this.result_ta.append(log);
                 });
               }
             }, 
@@ -328,3 +335,4 @@ window.knn = class extends AR.BaseModule {
     )
   }
 }
+

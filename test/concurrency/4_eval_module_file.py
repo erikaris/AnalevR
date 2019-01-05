@@ -23,13 +23,15 @@ class myThread (threading.Thread):
 
     def send_request(self):
         req = {
-            'sess': self.session_id, 'id': self.request_id, 'func': 'module.file.name.eval',
-            'args': ["summary", {
-                "dataset": "df{}".format(self.i),
-                "dataset_name": "diamonds.csv",
-                "r_var": "price",
-                "e_vars": "carat:clarity"
-            }]
+            'sess': self.session_id, 'id': self.request_id, 'func': 'module.file.id.eval',
+            'args': ["c5c9286e-0ff8-11e9-b7fa-1008b155cbfd", {
+            "dataset":"df{}".format(self.i),
+            "dataset_name": "diamonds.csv",
+            "time_var": "price",
+            "interval": "1",
+            "cens_var": "carat",
+            "fact_var": "",
+        }]
         }
         r_req = requests.post(config.webdis_url,
                               data='LPUSH/req/{}'.format(urllib.parse.quote_plus(json.dumps(req))))

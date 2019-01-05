@@ -27,3 +27,5 @@ RUN Rscript -e "install.packages(c('uuid'), repos='https://cran.microsoft.com/sn
 RUN Rscript -e "install.packages(c('sae'), repos='https://cran.microsoft.com/snapshot/2018-12-01')"
 RUN Rscript -e "install.packages(c('Scale'), repos='https://cran.microsoft.com/snapshot/2018-12-01')"
 RUN Rscript -e "install.packages(c('KMsurv'), repos='https://cran.microsoft.com/snapshot/2018-12-01')"
+
+Rscript -e "install.packages(c('raster'), repos='https://cran.microsoft.com/snapshot/2018-12-01')"

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: db
--- Generation Time: Dec 13, 2018 at 05:31 PM
+-- Generation Time: Jan 05, 2019 at 03:17 AM
 -- Server version: 5.5.61-MariaDB-1~trusty
 -- PHP Version: 7.2.2
 
@@ -133,14 +133,17 @@ INSERT INTO `module_file_model` (`id`, `module_id`, `filename`, `extension`) VAL
 ('02e1ce56-fdb9-11e8-8290-1008b155cbfd', '9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'analyze', 'R'),
 ('1cec730a-fdc8-11e8-97fe-02428393a14c', '9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'knn', 'R'),
 ('2f2cdcc9-5d11-4c49-84e1-302048f2e884', '10b9d078-1d0e-4167-bad5-3d8ce68fa822', 'plot', 'R'),
+('55a80448-1001-11e9-b387-1008b155cbfd', 'dfb343d8-fe80-11e8-9b65-02425c96581b', 'server', 'R'),
 ('69481608-fe92-11e8-9b65-02425c96581b', 'dfb343d8-fe80-11e8-9b65-02425c96581b', 'init', 'R'),
 ('6d61052b-85bb-4f48-998b-8d561fbc65d9', '10b9d078-1d0e-4167-bad5-3d8ce68fa822', 'summary', 'R'),
+('71204f94-1003-11e9-83b3-1008b155cbfd', '9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'server', 'R'),
 ('73562924-feaa-11e8-b5db-02425c96581b', '7354b332-feaa-11e8-b5db-02425c96581b', 'ui', 'js'),
 ('9e1e5f76-fc2c-11e8-b970-1008b155cbfd', '9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'ui', 'js'),
 ('a07128b6-c483-11e8-9df9-0242ac120006', 'e24dada0-c455-11e8-a577-0242ac120007', 'plot', 'R'),
 ('a93e4bfc-0101-440a-a1e3-9fbfbb5f4976', '10b9d078-1d0e-4167-bad5-3d8ce68fa822', 'predict', 'R'),
 ('b85f9db6-feb4-11e8-9aa7-02425c96581b', '7354b332-feaa-11e8-b5db-02425c96581b', 'process', 'R'),
 ('c4782856-fe92-11e8-9b65-02425c96581b', 'dfb343d8-fe80-11e8-9b65-02425c96581b', 'fhme', 'R'),
+('c5c9286e-0ff8-11e9-b7fa-1008b155cbfd', '7354b332-feaa-11e8-b5db-02425c96581b', 'server', 'R'),
 ('c668557e-feb4-11e8-9aa7-02425c96581b', '7354b332-feaa-11e8-b5db-02425c96581b', 'init', 'R'),
 ('d48293a0-fdc3-11e8-bb24-02428393a14c', '9e1e19f8-fc2c-11e8-b970-1008b155cbfd', 'init', 'R'),
 ('dfb485e0-fe80-11e8-9b65-02425c96581b', 'dfb343d8-fe80-11e8-9b65-02425c96581b', 'ui', 'js'),
@@ -190,6 +193,7 @@ CREATE TABLE `session_model` (
 
 INSERT INTO `session_model` (`id`, `label`, `user_id`, `created_time`, `is_default`) VALUES
 ('a31a628f-0604-42fa-b627-15babb07f2f5', 'Session', 'fb29d957-5aec-4977-9d47-a6c04de3a07a', '2018-10-01 09:29:38', 1),
+('a8df52f4-8660-48fe-a3d9-2c07d74d5670', 'Session', '4a4a62e4-1aed-4363-9dfd-cef6ae7fdabe', '2018-12-20 16:44:35', 1),
 ('fb434e95-d394-4554-abe8-7926501bda79', 'Session', 'b1e4f1d9-3e5d-4c76-acca-682160649c27', '2018-09-29 10:57:16', 1);
 
 -- --------------------------------------------------------

@@ -11,6 +11,7 @@ library(jsonlite)
 library(foreign)
 library(readxl)
 library(readr)
+library(stringr)
 source(file.path(app.dir, 'util.R'))
 source(file.path(app.dir, 'converter.R'))
 file.sources = list.files(c(file.path(app.dir, 'rpc_helper')), pattern="*.R$", full.names=TRUE, ignore.case=TRUE)
@@ -30,15 +31,17 @@ while(idle.iteration < max.idle.iteration) {
     inp.arr <- conn$BRPOP("req", 5)
 
     tryCatch({
-	    inp.req <- inp.arr[[2]]
-	    if (is.null(inp.req)) {
+	    str.inp.req <- inp.arr[[2]]
+	    if (is.null(str.inp.req)) {
 	    	idle.iteration <<- idle.iteration + 1
+	    	conn$LPUSH("log", paste("worker.R", paste0("[", pid, "]"), "-", 
+	    		paste("Idle iteration", idle.iteration, "of", max.idle.iteration)))
     	} else {
     		idle.iteration <<- 0
 
 	    	conn$SET(paste0(host.name, ".worker.pid.", pid, ".processing"), TRUE)
 
-	    	inp.req <- fromJSON(inp.req)
+	    	inp.req <- fromJSON(str.inp.req)
 	    	req.sess <- inp.req$sess
 	        req.id <- inp.req$id
 	        req.cmd <- inp.req$cmd
@@ -51,12 +54,15 @@ while(idle.iteration < max.idle.iteration) {
 			    dir.create(session.dir, showWarnings = FALSE, recursive = TRUE)
 			}
 
+			worker.session.rdata.need.to.be.written <- FALSE
+			worker.session.rdata.name <- paste0(req.id, '.session')
+			data.file <- file.path(session.dir, 'session.json')
+
 			session.save <- function(data.json) {
-			    cat(data.json, file=file.path(session.dir, 'session.json'), sep="\n")
+			    cat(data.json, file=data.file, sep="\n")
 			}
 
 			session.read <- function() {
-			    data.file <- file.path(session.dir, 'session.json')
 			    if (file.exists(data.file)) {
 			        data.json <- read_file(data.file)
 			        return(data.json)
@@ -69,16 +75,11 @@ while(idle.iteration < max.idle.iteration) {
 				conn$LPUSH(paste0("log.", req.id), str.log)
 			}
 
-			working.env <- new.env()
-
-			session.rdata <- file.path(session.dir, 'session.Rds')
-			if (file.exists(session.rdata)) {
-				# e <- new.env()
-				# load(file=session.rdata, envir = e)
-				# working.env <<- e$working.env
-				working.env <<- readRDS(session.rdata)
+			log <- function(str.log) {
+				conn$LPUSH(paste0("log.", req.id), str.log)
 			}
 
+			working.env <- new.env()
 			working.env$req.sess = req.sess
 			working.env$req.id = req.id
 			working.env$conn = conn
@@ -90,7 +91,15 @@ while(idle.iteration < max.idle.iteration) {
 	        tryCatch({
 
 	            if (! is.null(req.cmd)) {
-	                conn$LPUSH("log", paste(script.name(), paste0("[", req.sess, "]"), "-", "Executing command", paste(capture.output(req.cmd), sep="")))
+	                conn$LPUSH("log", paste("worker.R", paste0("[", pid, "]"), paste0("[", req.sess, "]"), "-", 
+	                	"Executing command", paste(capture.output(req.cmd), sep="")))
+
+	                files <- list.files(path = session.dir, pattern = "\\.Rds$", full.names = TRUE)
+	                envars <- lapply(lapply(files, readRDS), as.list)
+	                for (vars in envars) list2env(vars, working.env)
+
+	                worker.session.rdata.need.to.be.written <<- TRUE
+    				worker.session.rdata.name <<- 'session'
 
 	                # eval(parse(text='png(file="tmp.png")'))
 
@@ -102,12 +111,12 @@ while(idle.iteration < max.idle.iteration) {
 
 	                # eval(parse(text='dev.off()'), envir=working.env)
 
-	                # conn$LPUSH("log", paste(capture.output(resp.obj), collapse = '\n'))
 	                resp.obj <<- process.response(resp.obj, err.code)
 	            }
 
 	            else if (! is.null(req.func)) {
-	                conn$LPUSH("log", paste(script.name(), paste0("[", req.sess, "]"), "-", "Calling function", paste0("\"", req.func, "\""), "..."))
+	                conn$LPUSH("log", paste("worker.R", paste0("[", pid, "]"), paste0("[", req.sess, "]"), "-", 
+	                	"Calling function", paste0("\"", req.func, "\""), "..."))
 
 	                resp.obj <<- do.call(req.func, as.list(req.args), envir=working.env)
 
@@ -117,22 +126,34 @@ while(idle.iteration < max.idle.iteration) {
 	            }
 
 	            # Save session for next purpose
-		        conn$LPUSH("log", paste(script.name(), paste0("[", req.sess, "]"), "-", "Saving workspace to", session.rdata))
-		        # save(working.env, file = session.rdata)
-		        saveRDS(working.env, file=session.rdata, compress=FALSE)
+				if(worker.session.rdata.need.to.be.written) {
+					worker.session.rdata <- file.path(session.dir, paste0(worker.session.rdata.name, '.Rds'))
+					worker.session.rdata.locked <- file.path(session.dir, paste0(worker.session.rdata.name, '.lRds'))
+
+					conn$LPUSH("log", paste("worker.R", paste0("[", pid, "]"), paste0("[", req.sess, "]"), "-", 
+		        		"Saving workspace to", worker.session.rdata))
+
+					saveRDS(working.env, file=worker.session.rdata.locked, compress=FALSE)
+					file.rename(worker.session.rdata.locked, worker.session.rdata)
+				}
+
+				rm(working.env)
+				gc()
 
 	        }, error = function(e) {
 	            err.code <<- 1
 	            resp.obj <<- capture.output(e)
 	            
-	            conn$LPUSH("log", paste(script.name(), paste0("[", req.sess, "]"), "-", "Error :", resp.obj))
-	        })
+	            conn$LPUSH("log", paste("worker.R", paste0("[", pid, "]"), paste0("[", req.sess, "]"), "-", 
+	            	"Error :", capture.output(e)))
+			})
 
 	        resp.str <- toJSON(list('session'=req.sess, 'id'=req.id, 'data'=resp.obj, 'success'=as.logical(1-err.code)), auto_unbox=TRUE, force=TRUE)
 	        conn$LPUSH(paste0("resp-", req.id), resp.str)
 	    }
     }, error = function(e) {        
-        conn$LPUSH("log", capture.output("error"))
+        conn$LPUSH("log", paste("worker.R", paste0("[", pid, "]"), paste0("[", req.sess, "]"), "-", 
+        	"Error :", capture.output(e)))
     })
 
     conn$SET(paste0(host.name, ".worker.pid.", pid, ".processing"), FALSE)

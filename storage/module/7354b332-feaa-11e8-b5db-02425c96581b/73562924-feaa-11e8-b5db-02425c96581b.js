@@ -234,20 +234,42 @@ window.LifeTable = class extends AR.BaseModule {
               }, 
               onClick: () => {
                 this.result_ta.value('{0} - Initializing ...'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
-                this.eval_file('init', {
+                // this.eval_file('init', {
+                //   dataset: this.dataset_var(), 
+                //   dataset_name: this.dataset_name(), 
+                //   time_var: this.state.time_var, 
+                //   interval: this.state.interval, 
+                //   cens_var: this.state.cens_var, 
+                //   fact_var: this.state.fact_var, 
+                // }, (data) => {
+                //   if(data.type == 'plain') 
+                //     this.result_ta.append('{0} - {1}'.format(moment().format("YYYY-MM-DD hh:mm:ss"), data.text));
+
+                //   this.eval_file('process', {}, (data) => {
+                //     if(data.type == 'plain') this.result_ta.value(data.text);                    
+                //   });
+                // });
+
+                this.eval_file('server', {
                   dataset: this.dataset_var(), 
                   dataset_name: this.dataset_name(), 
                   time_var: this.state.time_var, 
                   interval: this.state.interval, 
                   cens_var: this.state.cens_var, 
                   fact_var: this.state.fact_var, 
-                }, (data) => {
-                  if(data.type == 'plain') 
-                    this.result_ta.append('{0} - {1}'.format(moment().format("YYYY-MM-DD hh:mm:ss"), data.text));
-
-                  this.eval_file('process', {}, (data) => {
-                    if(data.type == 'plain') this.result_ta.value(data.text);                    
-                  });
+                }, {
+                  'onProgress': (message) => {
+                    this.result_ta.append(log);
+                  }, 
+                  'onSuccess': (data) => {
+                    if(data.type == 'plain') {
+                      this.result_ta.append('\n{0} - Result:'.format(moment().format("YYYY-MM-DD hh:mm:ss")));
+                      this.result_ta.append(data.text);
+                    }
+                  }, 
+                  'onFailed': (message) => {
+                    this.result_ta.append(message);
+                  }
                 });
               }
             }, 
@@ -262,3 +284,5 @@ window.LifeTable = class extends AR.BaseModule {
     );
   }
 }
+
+

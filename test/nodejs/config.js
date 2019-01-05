@@ -1,8 +1,6 @@
-# webdis_url = 'http://ec2-34-214-232-140.us-west-2.compute.amazonaws.com:7379'
-# webdis_url = 'https://simpeg.bps.go.id/analev-r/webdis/proxy'
-# webdis_url = 'http://localhost:8888/webdis/proxy'
-webdis_url = 'http://localhost:7379'
-sessions = ['97bfa3b5-cff0-42b7-b1b1-3def6e87cda6', 'c076f175-ddd9-4c35-b52a-1947e92723b0',
+module.exports = {
+    webdis_url: 'http://localhost:7379', 
+    sessions : ['97bfa3b5-cff0-42b7-b1b1-3def6e87cda6', 'c076f175-ddd9-4c35-b52a-1947e92723b0',
             '93e182fe-825b-47e0-91e4-d0d86e2a3d92', 'a09bdfbf-fb94-4b5a-8d97-9b94a7a5202a',
             'e8e5300b-8c47-4778-aeb4-8ddcd6ea88ce', 'b113a8eb-2eff-42d0-9495-e39cc5cefdb6',
             '04246fae-b901-4751-93e2-7a2ccd01dc44', 'd915be82-53b8-4325-be5e-c8d43fb322ec',
@@ -53,3 +51,4 @@ sessions = ['97bfa3b5-cff0-42b7-b1b1-3def6e87cda6', 'c076f175-ddd9-4c35-b52a-194
             '6473f7e7-6618-4c63-8069-08d8c4b86e91', 'f1cfb8af-d9fb-40ca-a7a8-685dfde477af',
             '360b47d4-2489-43b6-bd3c-b640f8b03116', '4d327530-0383-46c9-9f9c-6ad577a31583'
         ]
+}
